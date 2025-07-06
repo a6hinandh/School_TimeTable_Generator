@@ -3,6 +3,7 @@ import { useState } from "react";
 
 function GeneratePage() {
   const [workingDays, setWorkingDays] = useState();
+  const [periods,setPeriods] = useState()
   const [subjects, setSubjects] = useState([""]);
   const [teachers, setTeachers] = useState([
     { name: "", class: "", sub: "", periods: null },
@@ -58,6 +59,17 @@ function GeneratePage() {
             placeholder="Working days"
             value={workingDays}
             onChange={(e) => setWorkingDays(e.target.value)}
+          ></input>
+        </div>
+
+        <div className="pt-3">
+          <h3 className="">No of periods per day</h3>
+          <input
+            type="number"
+            className="rounded-2 border border-0 p-2 form-control"
+            placeholder="Periods per day"
+            value={periods}
+            onChange={(e) => setPeriods(e.target.value)}
           ></input>
         </div>
 
