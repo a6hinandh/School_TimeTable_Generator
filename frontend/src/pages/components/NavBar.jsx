@@ -1,3 +1,4 @@
+import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Outlet } from "react-router";
 
 function NavBar() {
@@ -30,13 +31,13 @@ function NavBar() {
             </div>
             <div className="d-flex">
               <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Your TimeTables
+                <a className="nav-link">
+                  <SignUpButton className="border border-0 rounded bg-transparent"/>
                 </a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Profile
+                <a className="nav-link">
+                  <SignInButton className="border border-0 rounded bg-transparent "/>
                 </a>
               </li>
             </div>
