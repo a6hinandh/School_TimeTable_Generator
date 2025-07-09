@@ -10,7 +10,7 @@ function SignUpPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="vh-100" style={{ width: "100%", position: "relative" }}>
+    <div className="vh-100 dark-gradient-bg" style={{ width: "100%", position: "relative" }}>
       <DotGrid
         dotSize={10}
         gap={15}
