@@ -1,9 +1,8 @@
 .dark-gradient-bg {
   background: linear-gradient(
     to bottom,
-    #0b0c10,
-    #2d313a
-  ); /* dark bluish gradient */
+    #000000, #0f2027
+  ); 
   min-height: 100vh;
   color: white;
 }
