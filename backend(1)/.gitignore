@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+*.log
+
+# Virtual environment
+venv/
+.venv/
+ENV/
+env/
+.Python
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# FastAPI or Uvicorn logs
+*.log
+
+# Tests/cache
+.pytest_cache/
+coverage/
+
+# Pipenv/Poetry
+Pipfile.lock
+poetry.lock
