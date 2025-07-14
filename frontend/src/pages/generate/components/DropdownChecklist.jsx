@@ -1,59 +1,69 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check } from 'lucide-react';
 
 const DropdownChecklist = ({ options, selected, onChange }) => {
-  const [show, setShow] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  const toggleOption = (option) => {
-    let updated = [];
-    if (selected.includes(option)) {
-      updated = selected.filter((o) => o !== option);
-    } else {
-      updated = [...selected, option];
-    }
-    onChange && onChange(updated);
-  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShow(false);
+        setIsOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  return (
-    <div className="w-100" ref={dropdownRef}>
-      <button
-        className="rounded-2 border border-0 me-3 p-2 d-flex align-items-center mb-3 form-select w-100"
-        style={{
-          whiteSpace: "nowrap",
-          overflowX: "auto",
-          textOverflow: "ellipsis",
-        }}
-        type="button"
-        onClick={() => setShow(!show)}
-      >
-        {selected.length > 0 ? selected.join(", ") : "Select Subjects"}
-      </button>
+  const handleToggle = (option) => {
+    const newSelected = selected.includes(option)
+      ? selected.filter(item => item !== option)
+      : [...selected, option];
+    onChange(newSelected);
+  };
 
-      {show && (
-        <div className="dropdown-menu d-block p-2 border border-1 shadow">
-          {options.map((option, idx) => (
-            <div key={idx} className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                checked={selected.includes(option)}
-                onChange={() => toggleOption(option)}
-                id={`check-${idx}`}
-              />
-              <label className="form-check-label">{option}</label>
+  const filteredOptions = options.filter(option => option.trim() !== '');
+
+  return (
+    <div className="dropdown position-relative" ref={dropdownRef}>
+      <button
+        type="button"
+        className="btn btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ height: '40px' }}
+      >
+        <span>
+          {selected.length > 0 
+            ? `${selected.length} selected` 
+            : 'Select subjects'
+          }
+        </span>
+        <ChevronDown size={16} />
+      </button>
+      
+      {isOpen && (
+        <div className="dropdown-menu show w-100 p-0" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          {filteredOptions.map((option, index) => (
+            <div
+              key={index}
+              className={`dropdown-item d-flex align-items-center ${
+                selected.includes(option) ? 'bg-light' : ''
+              }`}
+              onClick={() => handleToggle(option)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="me-2" style={{ width: '16px', height: '16px' }}>
+                {selected.includes(option) && <Check size={16} color="green" />}
+              </div>
+              <span>{option}</span>
             </div>
           ))}
+          {filteredOptions.length === 0 && (
+            <div className="dropdown-item text-muted">No subjects available</div>
+          )}
         </div>
       )}
     </div>

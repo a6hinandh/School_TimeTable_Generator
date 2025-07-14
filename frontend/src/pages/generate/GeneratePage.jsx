@@ -29,6 +29,31 @@ function GeneratePage() {
     setClasses(newClasses);
   };
 
+  const handleNext = () => {
+    // Validate input before proceeding
+    if (!workingDays || !periods) {
+      alert("Please enter working days and periods per day");
+      return;
+    }
+    
+    const validClasses = classes.filter(c => c.trim() !== "");
+    const validSubjects = subjects.filter(s => s.trim() !== "");
+    
+    if (validClasses.length === 0 || validSubjects.length === 0) {
+      alert("Please add at least one class and one subject");
+      return;
+    }
+
+    navigate("/generate/add-teachers", {
+      state: { 
+        classes: validClasses, 
+        subjects: validSubjects,
+        workingDays,
+        periods 
+      },
+    });
+  };
+
   return (
     <div className="dark-gradient-bg">
       <div className="container">
@@ -107,11 +132,7 @@ function GeneratePage() {
         <div className="flex w-100 text-center align-items-center justify-content-center mt-5">
           <div
             className="btn btn-black mb-4 w-20 fs-5 flex align-items-center justify-content-center"
-            onClick={() =>
-              navigate("/generate/add-teachers", {
-                state: { classes, subjects },
-              })
-            }
+            onClick={handleNext}
           >
             Add Teachers
             <ArrowBigRight size={25} />
