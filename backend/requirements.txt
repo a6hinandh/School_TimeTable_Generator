@@ -3,3 +3,16 @@ uvicorn==0.24.0
 pydantic==2.5.0
 ortools==9.8.3296
 python-multipart==0.0.6
+
+Create a .env file in the BACKEND folder and add:
+MONGO_URI=mongodb+srv://timetable:1UuqdUgiLfQ8iqfX@cluster0.xejguda.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+Install these:
+
+python -m pip install "pymongo[srv]" (run this command)
+(pip install the following):
+pymongo 
+python-dotenv
+
+To run the server, use this command:
+uvicorn server:app --reload

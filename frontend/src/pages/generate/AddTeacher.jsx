@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Plus, Loader2, X } from "lucide-react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import DropdownChecklist from "./components/DropdownChecklist";
 import TimetableDisplay from "./TimetableDisplay";
+import EditTimetable from "./components/EditTimetable";
 
 function AddTeacher() {
+  const navigate = useNavigate();
   const { state } = useLocation();
   const { classes, subjects, workingDays, periods } = state || {};
   const [teachers, setTeachers] = useState([
@@ -20,7 +22,7 @@ function AddTeacher() {
   const [loading, setLoading] = useState(false);
   const [timetableData, setTimetableData] = useState(null);
   const [error, setError] = useState("");
-  
+
   // Store the teachers data when timetable is generated
   const [savedTeachersData, setSavedTeachersData] = useState(null);
 
@@ -57,7 +59,9 @@ function AddTeacher() {
   const handleDeletePeriod = (teacherIndex, periodIndex) => {
     const newTeachers = [...teachers];
     if (newTeachers[teacherIndex].periods.length > 1) {
-      newTeachers[teacherIndex].periods = newTeachers[teacherIndex].periods.filter((_, i) => i !== periodIndex);
+      newTeachers[teacherIndex].periods = newTeachers[
+        teacherIndex
+      ].periods.filter((_, i) => i !== periodIndex);
       setTeachers(newTeachers);
     }
   };
@@ -113,18 +117,25 @@ function AddTeacher() {
   const generateTimetable = async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       // Validate input
       for (const teacher of teachers) {
         if (!teacher.name.trim()) {
           throw new Error("Please enter all teacher names");
         }
-        if (!teacher.mainSubject || teacher.mainSubject === "Select Main Subject") {
+        if (
+          !teacher.mainSubject ||
+          teacher.mainSubject === "Select Main Subject"
+        ) {
           throw new Error(`Please select main subject for ${teacher.name}`);
         }
-        if (teacher.periods.some(p => !p.class || !p.subject || !p.noOfPeriods)) {
-          throw new Error(`Please fill all period assignments for ${teacher.name}`);
+        if (
+          teacher.periods.some((p) => !p.class || !p.subject || !p.noOfPeriods)
+        ) {
+          throw new Error(
+            `Please fill all period assignments for ${teacher.name}`
+          );
         }
       }
 
@@ -135,20 +146,24 @@ function AddTeacher() {
       const requestData = {
         workingDays: parseInt(workingDays) || 5,
         periods: parseInt(periods) || 8,
-        classes: classes.filter(c => c.trim()),
-        subjects: subjects.filter(s => s.trim()),
-        teachers: teachers.map(teacher => ({
+        classes: classes.filter((c) => c.trim()),
+        subjects: subjects.filter((s) => s.trim()),
+        teachers: teachers.map((teacher) => ({
           name: teacher.name,
           subjects: teacher.subjects,
           mainSubject: teacher.mainSubject,
-          labPeriod: teacher.labPeriod !== "Select Lab Period" ? teacher.labPeriod : null,
-          assigned_class: teacher.class !== "Select Class" ? teacher.class : null,
-          periods: teacher.periods.map(p => ({
+          labPeriod:
+            teacher.labPeriod !== "Select Lab Period"
+              ? teacher.labPeriod
+              : null,
+          assigned_class:
+            teacher.class !== "Select Class" ? teacher.class : null,
+          periods: teacher.periods.map((p) => ({
             class_name: p.class,
             subject: p.subject,
-            noOfPeriods: p.noOfPeriods
-          }))
-        }))
+            noOfPeriods: p.noOfPeriods,
+          })),
+        })),
       };
 
       console.log("Sending request:", requestData);
@@ -168,7 +183,7 @@ function AddTeacher() {
 
       const data = await response.json();
       console.log("Response:", data);
-      
+
       setTimetableData(data);
     } catch (err) {
       console.error("Error generating timetable:", err);
@@ -192,6 +207,30 @@ function AddTeacher() {
     await generateTimetable();
   };
 
+  const handleSavetoDb = async () => {
+    try {
+      if (timetableData !== null) {
+        const response = await fetch("http://localhost:8000/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(timetableData),
+        });
+        const result = await response.json();
+
+        navigate(`/display/${result.id}`, {
+          state: {
+            classTimetable: timetableData.class_timetable,
+            teacherTimetable: timetableData.teacher_timetable,
+          },
+        });
+      }
+    } catch (error) {
+      console.log("Error in saving", error);
+    }
+  };
+
   // If timetable is generated, show the timetable display
   if (timetableData) {
     return (
@@ -202,11 +241,27 @@ function AddTeacher() {
             <div className="d-flex gap-2">
               <button
                 className="btn btn-warning btn-lg"
+                onClick={handleSavetoDb}
+                title="Save"
+              >
+                <X className="me-2" size={16} />
+                Save
+              </button>
+              <button
+                className="btn btn-warning btn-lg"
                 onClick={handleBackToTeachers}
                 title="Go back to edit teachers"
               >
                 <X className="me-2" size={16} />
                 Edit Teachers
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+              >
+                Edit timetable
               </button>
               <button
                 className="btn btn-success btn-lg"
@@ -232,6 +287,45 @@ function AddTeacher() {
             classTimetable={timetableData.class_timetable}
             teacherTimetable={timetableData.teacher_timetable}
           />
+
+          <div
+            className="modal fade"
+            id="exampleModal"
+            tabIndex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog modal-xl">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                    Edit TimeTable
+                  </h1>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <EditTimetable classTimetable={timetableData.class_timetable} teacherTimetable={timetableData.teacher_timetable}/>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <button type="button" className="btn btn-primary">
+                    Save changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -242,18 +336,22 @@ function AddTeacher() {
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="mt-3">Add Teachers</h3>
         {savedTeachersData && (
-          <div className="alert alert-info mt-3 mb-0" style={{ fontSize: '0.9rem' }}>
-            <strong>Note:</strong> You can edit the data below and regenerate the timetable
+          <div
+            className="alert alert-info mt-3 mb-0"
+            style={{ fontSize: "0.9rem" }}
+          >
+            <strong>Note:</strong> You can edit the data below and regenerate
+            the timetable
           </div>
         )}
       </div>
-      
+
       {error && (
         <div className="alert alert-danger" role="alert">
           {error}
         </div>
       )}
-      
+
       <div className="mb-5">
         {teachers.map((teacher, index) => {
           return (
@@ -266,7 +364,12 @@ function AddTeacher() {
                 <button
                   onClick={() => handleDeleteTeacher(index)}
                   className="btn btn-danger position-absolute"
-                  style={{ top: "10px", right: "10px", padding: "4px 8px", fontSize: "12px" }}
+                  style={{
+                    top: "10px",
+                    right: "10px",
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                  }}
                   title="Delete Teacher"
                 >
                   <X size={16} />
@@ -453,7 +556,7 @@ function AddTeacher() {
             </div>
           );
         })}
-        
+
         <div className="text-center d-flex align-items-center justify-content-center">
           <button
             onClick={handleAddTeacher}
@@ -476,8 +579,10 @@ function AddTeacher() {
                 <Loader2 className="me-2 animate-spin" size={20} />
                 Generating...
               </>
+            ) : savedTeachersData ? (
+              "Regenerate Timetable"
             ) : (
-              savedTeachersData ? "Regenerate Timetable" : "Generate Timetable"
+              "Generate Timetable"
             )}
           </button>
         </div>

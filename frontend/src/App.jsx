@@ -16,7 +16,7 @@ function App() {
         <Route path="/generate" element={<GeneratePage />} />
         <Route path="/generate/add-teachers" element={<AddTeacher />} />
         <Route path="/dashboard" element={<DashbordPage />} />
-        <Route path="/display" element={<TimetableDisplay />} /> {/* ✅ added */}
+        <Route path="/display/:id" element={<TimetableDisplay />} /> {/* ✅ added */}
       </Route>
       <Route path="/sign-up" element={<SignUpPage />} />
       <Route path="/login" element={<LoginPage />} />

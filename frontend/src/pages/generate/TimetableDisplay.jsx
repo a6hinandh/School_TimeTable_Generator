@@ -1,8 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import { useLocation } from 'react-router';
+import EditTimetable from "./components/EditTimetable";
 
-const TimetableDisplay = ({ classTimetable, teacherTimetable }) => {
+const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initialTeacher, timetableId="" }) => {
+  const location = useLocation();
   const [viewMode, setViewMode] = useState('class');
   const [selectedItem, setSelectedItem] = useState('');
+  const [classTimetable, setClassTimetable] = useState(initialClass || []);
+  const [teacherTimetable, setTeacherTimetable] = useState(initialTeacher || []);
+  const [id,setId] = useState(timetableId)
+  console.log(classTimetable)
+
+   useEffect(() => {
+    if (location.state && (!initialClass || !initialTeacher)) {
+      setClassTimetable(location.state.classTimetable);
+      setTeacherTimetable(location.state.teacherTimetable);
+      setId(location.state.id)
+    }
+  }, [location]);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8'];
@@ -59,7 +74,7 @@ const TimetableDisplay = ({ classTimetable, teacherTimetable }) => {
   };
 
   return (
-    <div className="container-fluid p-4">
+    <div className="container-fluid p-4 dark-gradient-bg">
       <div className="row mb-4">
         <div className="col-md-6">
           <div className="btn-group" role="group">
@@ -119,6 +134,50 @@ const TimetableDisplay = ({ classTimetable, teacherTimetable }) => {
           Please select a {viewMode === 'class' ? 'class' : 'teacher'} to view the timetable
         </div>
       )}
+      <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+              >
+                Edit timetable
+              </button>
+      <div
+            className="modal fade"
+            id="exampleModal"
+            tabIndex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog modal-xl">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                    Edit TimeTable
+                  </h1>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <EditTimetable classTimetable={classTimetable} teacherTimetable={teacherTimetable} id={id}/>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
     </div>
   );
 };
