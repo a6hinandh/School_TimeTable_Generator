@@ -7,6 +7,7 @@ from generator import generate_from_input
 from dotenv import load_dotenv
 from datetime import datetime
 from bson import ObjectId
+from pytz import timezone
 import pymongo
 
 
@@ -120,7 +121,8 @@ async def generate_timetable(request: TimetableRequest):
 @app.post("/add")
 async def add_timetable(request: Request):
     data = await request.json()
-    data["createdAt"] = datetime.utcnow()
+    india = timezone("Asia/Kolkata")
+    data["createdAt"] = datetime.now(india).isoformat()
     result = collection.insert_one(data)
     return {"message": "Saved!", "id": str(result.inserted_id)}
 
@@ -140,7 +142,8 @@ def get_timetables(user_id: str):
 @app.put("/update-timetable/{timetable_id}")
 async def update_timetable(timetable_id: str, request:Request):
     data = await request.json()
-    data["createdAt"] = datetime.utcnow()
+    india = timezone("Asia/Kolkata")
+    data["createdAt"] = datetime.now(india).isoformat()
     result = collection.update_one(
         {"_id": ObjectId(timetable_id)},
         {"$set": data}
