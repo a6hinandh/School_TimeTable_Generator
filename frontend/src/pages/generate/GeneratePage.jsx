@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 function GeneratePage() {
   const [workingDays, setWorkingDays] = useState();
   const [periods, setPeriods] = useState();
+  const [title, setTitle] = useState();
   const [subjects, setSubjects] = useState([""]);
   const [classes, setClasses] = useState([""]);
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ function GeneratePage() {
         classes: validClasses, 
         subjects: validSubjects,
         workingDays,
-        periods 
+        periods,
+        title
       },
     });
   };
@@ -57,6 +59,17 @@ function GeneratePage() {
   return (
     <div className="dark-gradient-bg">
       <div className="container">
+        <div className="pt-3">
+          <h3 className="">Title</h3>
+          <input
+            type="text"
+            className="rounded-2 border border-0 p-2 form-control"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          ></input>
+        </div>
+
         <div className="pt-3">
           <h3 className="">No of working days</h3>
           <input

@@ -1,19 +1,52 @@
-import { Loader } from "lucide-react";
-import { useNavigate } from "react-router";
+import { DeleteIcon, Loader, Trash } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
 import Orb from "../../../styles/orb/Orb";
 import { useEffect, useState } from "react";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 function DashbordPage() {
   const navigate = useNavigate();
+  const {state} = useLocation()
+  const { user, isSignedIn } = useUser();
   const [timetables, setTimetables] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
+  const { getToken } = useAuth();
+
+
+ useEffect(() => {
+  const updateName = async () => {
+    if (isSignedIn && user  &&  typeof state.name === "string" && state.name.trim() !== "") {
+      console.log("Updating with name:", state.name);
+
+      try {
+        await user.update({ firstName: state.name });
+        console.log("Name updated!");
+      } catch (error) {
+        console.error("Update failed:", error);
+      }
+    } else {
+      console.log("Invalid or missing name, skipping update.");
+    }
+  };
+
+  updateName();
+}, [user, isSignedIn, state?.name]);
+
   useEffect(() => {
     const fetchTimetables = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("http://localhost:8000/get-timetables");
-        const data = await res.json();
-        setTimetables(data);
+        if (isSignedIn ) {
+          const token = await getToken();
+          const res = await fetchWithAuth(
+            token,
+            `http://localhost:8000/get-timetables/${user.id}`
+          );
+          const data = await res.json();
+          setTimetables(data);
+        }
       } catch (error) {
         console.log("Error fetching timetables:", error);
       } finally {
@@ -23,6 +56,25 @@ function DashbordPage() {
 
     fetchTimetables();
   }, []);
+
+  const handleDelete = async (timetableId) => {
+    try {
+      setDeletingId(timetableId);
+      const token = await getToken();
+      const res = await fetchWithAuth(
+        token,
+        `http://localhost:8000/delete-timetable/${timetableId}`,
+        { method: "DELETE" }
+      );
+      setTimetables((prev) =>
+        prev.filter((timetable) => timetable._id !== timetableId)
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setDeletingId("");
+    }
+  };
 
   return (
     <div className="dark-gradient-bg min-vh-100">
@@ -58,27 +110,51 @@ function DashbordPage() {
             </div>
           )}
 
+          {!isLoading && timetables.length == 0 && (
+            <div className="w-100 d-flex gap-3 align-items-center justify-content-center mt-4 border border-2 rounded-4 p-4">
+              <p className="fs-4 pt-3">No timetables created</p>
+            </div>
+          )}
+
           <div className="mt-4">
             {timetables.map((timetable, index) => {
               return (
                 <div
+                  className="d-flex w-100 align-items-center justify-content-center gap-3"
                   key={index}
-                  className="bg-dark p-3 mb-4 d-flex align-items-center justify-content-start rounded-4"
-                  style={{ cursor: "pointer", minHeight: "80px" }}
-                  onClick={() =>
-                    navigate(`/display/${timetable._id}`, {
-                      state: {
-                        classTimetable: timetable.class_timetable,
-                        teacherTimetable: timetable.teacher_timetable,
-                        timetableId: timetable._id,
-                      },
-                    })
-                  }
                 >
-                  <p className="fs-5">
-                    Created on {timetable.createdAt.split("T")[0]} at{" "}
-                    {timetable.createdAt.split("T")[1].slice(0, 5)}{" "}
-                  </p>
+                  <div
+                    className="bg-dark px-3 mb-4 d-flex align-items-center justify-content-between rounded-4 w-100"
+                    style={{ cursor: "pointer", minHeight: "80px" }}
+                    onClick={() =>
+                      navigate(`/display/${timetable._id}`, {
+                        state: {
+                          classTimetable: timetable.class_timetable,
+                          teacherTimetable: timetable.teacher_timetable,
+                          timetableId: timetable._id.toString(),
+                        },
+                      })
+                    }
+                  >
+                    <div className="">
+                      <p className="fs-5">{timetable.title}</p>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-center gap-3">
+                      <p className="fs-5 pt-2">
+                        Created on {timetable.createdAt.split("T")[0]} at{" "}
+                        {timetable.createdAt.split("T")[1].slice(0, 5)}{" "}
+                      </p>
+                    </div>
+                  </div>
+                  {deletingId === timetable._id ? (
+                    <div className="spinner-border text-danger mb-3" />
+                  ) : (
+                    <Trash
+                      className="text-danger mb-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleDelete(timetable._id)}
+                    />
+                  )}
                 </div>
               );
             })}

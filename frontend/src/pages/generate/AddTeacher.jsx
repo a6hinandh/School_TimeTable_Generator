@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Plus, Loader2, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import DropdownChecklist from "./components/DropdownChecklist";
 import TimetableDisplay from "./TimetableDisplay";
 import EditTimetable from "./components/EditTimetable";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 function AddTeacher() {
   const navigate = useNavigate();
+  const {getToken} = useAuth()
+  const {user} = useUser()
   const { state } = useLocation();
-  const { classes, subjects, workingDays, periods } = state || {};
+  const { classes, subjects, workingDays, periods, title } = state || {};
   const [teachers, setTeachers] = useState([
     {
       name: "",
@@ -144,6 +148,8 @@ function AddTeacher() {
 
       // Prepare data for API
       const requestData = {
+        userId : user.id,
+        title: title,
         workingDays: parseInt(workingDays) || 5,
         periods: parseInt(periods) || 8,
         classes: classes.filter((c) => c.trim()),
@@ -167,8 +173,8 @@ function AddTeacher() {
       };
 
       console.log("Sending request:", requestData);
-
-      const response = await fetch("http://localhost:8000/generate", {
+      const token = await getToken();
+      const response = await fetchWithAuth(token,"http://localhost:8000/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,7 +216,9 @@ function AddTeacher() {
   const handleSavetoDb = async () => {
     try {
       if (timetableData !== null) {
-        const response = await fetch("http://localhost:8000/add", {
+        
+        const token = await getToken();
+        const response = await fetchWithAuth(token,"http://localhost:8000/add", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

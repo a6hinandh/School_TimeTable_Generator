@@ -2,20 +2,20 @@ import React, { useState,useEffect } from 'react';
 import { useLocation } from 'react-router';
 import EditTimetable from "./components/EditTimetable";
 
-const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initialTeacher, timetableId="" }) => {
+const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initialTeacher, }) => {
   const location = useLocation();
   const [viewMode, setViewMode] = useState('class');
   const [selectedItem, setSelectedItem] = useState('');
   const [classTimetable, setClassTimetable] = useState(initialClass || []);
   const [teacherTimetable, setTeacherTimetable] = useState(initialTeacher || []);
-  const [id,setId] = useState(timetableId)
-  console.log(classTimetable)
+  const [id,setId] = useState()
 
    useEffect(() => {
     if (location.state && (!initialClass || !initialTeacher)) {
       setClassTimetable(location.state.classTimetable);
       setTeacherTimetable(location.state.teacherTimetable);
-      setId(location.state.id)
+      setId(location.state.timetableId)
+      
     }
   }, [location]);
 

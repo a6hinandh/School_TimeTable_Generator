@@ -53,6 +53,8 @@ class TimetableRequest(BaseModel):
     classes: List[str]
     subjects: List[str]
     teachers: List[TeacherInput]
+    userId : str 
+    title : str
 
 @app.post("/generate")
 async def generate_timetable(request: TimetableRequest):
@@ -104,7 +106,9 @@ async def generate_timetable(request: TimetableRequest):
             "class_timetable": class_timetable.data,
             "teacher_timetable": teacher_timetable.data,
             "message": "✅ Timetable generated successfully",
-            "status": "FEASIBLE"
+            "status": "FEASIBLE",
+            "userId" : request.userId,
+            "title" : request.title
         }
 
     except Exception as e:
@@ -120,15 +124,18 @@ async def add_timetable(request: Request):
     result = collection.insert_one(data)
     return {"message": "Saved!", "id": str(result.inserted_id)}
 
-@app.get("/get-timetables")
-def get_timetables():
-    data=[]
-    for doc in collection.find().sort("createdAt", pymongo.DESCENDING):
-        doc["_id"] = str(doc["_id"])
+@app.get("/get-timetables/{user_id}")
+def get_timetables(user_id: str):
+    data = []
+    query = {"userId": user_id}  
+
+    for doc in collection.find(query).sort("createdAt", pymongo.DESCENDING):
+        doc["_id"] = str(doc["_id"])  
         if isinstance(doc.get("createdAt"), datetime):
             doc["createdAt"] = doc["createdAt"].isoformat()
         data.append(doc)
-    return data 
+
+    return data
 
 @app.put("/update-timetable/{timetable_id}")
 async def update_timetable(timetable_id: str, request:Request):
@@ -138,7 +145,15 @@ async def update_timetable(timetable_id: str, request:Request):
         {"_id": ObjectId(timetable_id)},
         {"$set": data}
     )
-    return {"message": "Saved!", "id": str(result.inserted_id)}
+    return {"message": "Saved!", "id": timetable_id}
+
+@app.delete("/delete-timetable/{timetable_id}")
+async def delete_timetable(timetable_id: str):
+    result = collection.delete_one({"_id": ObjectId(timetable_id)})
+    if result.deleted_count == 1:
+        return {"message": "Deleted"}
+    return {"message": "Not Found"}
+
 
 
 @app.get("/")

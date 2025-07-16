@@ -3,10 +3,12 @@ import "./style.css";
 import { CalendarDays } from "lucide-react";
 import FeaturesSection from "./components/FeaturesSection";
 import { useNavigate } from 'react-router-dom';
+import { useUser } from "@clerk/clerk-react";
 
 
 function HomePage() {
   const navigate = useNavigate();
+  const {isSignedIn} = useUser()
   return (
     <div className="dark-gradient-bg">
       <div className="container">
@@ -16,7 +18,7 @@ function HomePage() {
             <h3 className="">
               Create optimized class schedules in just a few clicks.
             </h3>
-            <div className="btn btn-black mt-3 w-100 fs-5" onClick={()=>navigate("/dashboard")}>Get Started</div>
+            <div className="btn btn-black mt-3 w-100 fs-5" onClick={()=>navigate(`${isSignedIn ? "/dashboard" : "/login"}`)}>Get Started</div>
           </div>
           <div className="col">
             <div className="center-div">

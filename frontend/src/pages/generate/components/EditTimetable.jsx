@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { fetchWithAuth } from "../../../utils/fetchWithAuth";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
-const EditTimetable = ({ classTimetable, teacherTimetable, id }) => {
+const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
   const navigate = useNavigate()
+  const {getToken} = useAuth()
+  const {user} = useUser()
   const [selectedItem, setSelectedItem] = useState("");
   const [selectedPeriods, setSelectedPeriods] = useState([]);
   const [currentClassTimeTable, setCurrentClassTimeTable] =
@@ -132,17 +136,22 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id }) => {
   };
 
   const handleSave = async () => {
+    
     const timetableData = {
       class_timetable: currentClassTimeTable,
       teacher_timetable: currentTeacherTimeTable,
       message: "✅ Timetable generated successfully",
       status: "FEASIBLE",
+      userId: user.id,
+      title: title
     };
     if (id) {
-      const response = await fetch(
+      console.log("updating")
+      const token = await getToken();
+      const response = await fetchWithAuth(token,
         `http://localhost:8000/update-timetable/${id}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
@@ -150,7 +159,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id }) => {
         }
       );
       const result = await response.json();
-
+      console.log(result)
       navigate(`/display/${result.id}`, {
         state: {
           classTimetable: timetableData.class_timetable,
@@ -159,7 +168,8 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id }) => {
         },
       });
     } else {
-      const response = await fetch("http://localhost:8000/add", {
+      const token = await getToken();
+      const response = await fetchWithAuth(token,"http://localhost:8000/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
