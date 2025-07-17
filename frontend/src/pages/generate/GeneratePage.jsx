@@ -51,7 +51,9 @@ function GeneratePage() {
         subjects: validSubjects,
         workingDays,
         periods,
-        title
+        title,
+        teacherData:null,
+        timetableId:null
       },
     });
   };

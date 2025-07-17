@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { fetchWithAuth } from "../../../utils/fetchWithAuth";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
 
-const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
-  const navigate = useNavigate()
-  const {getToken} = useAuth()
-  const {user} = useUser()
+const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) => {
+  const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const { user } = useUser();
   const [selectedItem, setSelectedItem] = useState("");
   const [selectedPeriods, setSelectedPeriods] = useState([]);
   const [currentClassTimeTable, setCurrentClassTimeTable] =
@@ -14,10 +15,8 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
   const [currentTeacherTimeTable, setCurrentTeacherTimeTable] =
     useState(teacherTimetable);
 
-  const [showPositiveMessage,setShowPositiveMessage] = useState(false)
-  const [showNegativeMessage,setShowNegativeMessage] = useState(false)
-
-
+  const [showPositiveMessage, setShowPositiveMessage] = useState(false);
+  const [showNegativeMessage, setShowNegativeMessage] = useState(false);
 
   useEffect(() => {
     if (classTimetable) {
@@ -75,6 +74,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
     setSelectedPeriods(newSelected);
 
     if (newSelected.length === 2) {
+   
       const [first, second] = newSelected;
 
       const newClass = JSON.parse(JSON.stringify(currentClassTimeTable));
@@ -84,10 +84,12 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
       const period2 =
         newClass[selectedItem][second.dayIndex][second.periodIndex];
 
+        
       let teacher1 =
-        period1 !== "Free" && period1 !== "" ? period1.split("(")[1][0] : null;
+        period1 !== "Free" && period1 !== "" ? period1.split("(")[1].split(")")[0] : null;
       let teacher2 =
-        period2 !== "Free" && period2 !== "" ? period2.split("(")[1][0] : null;
+        period2 !== "Free" && period2 !== "" ? period2.split("(")[1].split(")")[0] : null;
+        console.log(teacher1,teacher2)
 
       if (
         teacher1 &&
@@ -95,37 +97,33 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
         newTeacher[teacher1][second.dayIndex][second.periodIndex] === "Free" &&
         newTeacher[teacher2][first.dayIndex][first.periodIndex] === "Free"
       ) {
+        setShowPositiveMessage(true);
+        setTimeout(() => {
+          setShowPositiveMessage(false);
+          newClass[selectedItem][first.dayIndex][first.periodIndex] = period2;
+          newClass[selectedItem][second.dayIndex][second.periodIndex] = period1;
 
-        setShowPositiveMessage(true)
-        setTimeout(()=>{
-            setShowPositiveMessage(false)
-            newClass[selectedItem][first.dayIndex][first.periodIndex] = period2;
-        newClass[selectedItem][second.dayIndex][second.periodIndex] = period1;
+          // Swap teacher periods
+          newTeacher[teacher1][second.dayIndex][second.periodIndex] =
+            newTeacher[teacher1][first.dayIndex][first.periodIndex];
+          newTeacher[teacher1][first.dayIndex][first.periodIndex] = "Free";
 
-        // Swap teacher periods
-        newTeacher[teacher1][second.dayIndex][second.periodIndex] =
-          newTeacher[teacher1][first.dayIndex][first.periodIndex];
-        newTeacher[teacher1][first.dayIndex][first.periodIndex] = "Free";
+          newTeacher[teacher2][first.dayIndex][first.periodIndex] =
+            newTeacher[teacher2][second.dayIndex][second.periodIndex];
+          newTeacher[teacher2][second.dayIndex][second.periodIndex] = "Free";
 
-        newTeacher[teacher2][first.dayIndex][first.periodIndex] =
-          newTeacher[teacher2][second.dayIndex][second.periodIndex];
-        newTeacher[teacher2][second.dayIndex][second.periodIndex] = "Free";
-
-        setCurrentClassTimeTable(newClass);
-        setCurrentTeacherTimeTable(newTeacher);
-        setSelectedPeriods([]);
-        },500)
+          setCurrentClassTimeTable(newClass);
+          setCurrentTeacherTimeTable(newTeacher);
+          setSelectedPeriods([]);
+        }, 500);
         // Swap class periods
-        
-      }else{
-        setShowNegativeMessage(true)
-        setTimeout(()=>{
-            setShowNegativeMessage(false)
-            setSelectedPeriods([]);
-        },500)
+      } else {
+        setShowNegativeMessage(true);
+        setTimeout(() => {
+          setShowNegativeMessage(false);
+          setSelectedPeriods([]);
+        }, 500);
       }
-
-      
     }
   };
 
@@ -136,19 +134,16 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
   };
 
   const handleSave = async () => {
-    
     const timetableData = {
       class_timetable: currentClassTimeTable,
       teacher_timetable: currentTeacherTimeTable,
-      message: "✅ Timetable generated successfully",
-      status: "FEASIBLE",
-      userId: user.id,
-      title: title
+      teacherData: teacherData
     };
     if (id) {
-      console.log("updating")
+   
       const token = await getToken();
-      const response = await fetchWithAuth(token,
+      const response = await fetchWithAuth(
+        token,
         `http://localhost:8000/update-timetable/${id}`,
         {
           method: "PUT",
@@ -159,17 +154,23 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
         }
       );
       const result = await response.json();
-      console.log(result)
-      navigate(`/display/${result.id}`, {
+      toast.success("Timetable saved successfully");
+      navigate(`/display/${id}`, {
         state: {
           classTimetable: timetableData.class_timetable,
           teacherTimetable: timetableData.teacher_timetable,
           timetableId: id,
+          teacherData: result.teacherData,
+          classes: result.classes,
+          subjects: result.subjects,
+          workingDays: result.workingDays,
+          periods: result.periods,
+          title: result.title,
         },
       });
     } else {
       const token = await getToken();
-      const response = await fetchWithAuth(token,"http://localhost:8000/add", {
+      const response = await fetchWithAuth(token, "http://localhost:8000/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,11 +179,17 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
       });
       const result = await response.json();
 
-      navigate(`/display/${result.id}`, {
+      navigate(`/display/${id}`, {
         state: {
           classTimetable: timetableData.class_timetable,
           teacherTimetable: timetableData.teacher_timetable,
           timetableId: result._id,
+          teacherData: result.teacherData,
+          classes: result.classes,
+          subjects: result.subjects,
+          workingDays: result.workingDays,
+          periods: result.periods,
+          title: result.title,
         },
       });
     }
@@ -213,7 +220,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
                 {dayData.map((period, periodIndex) => (
                   <td
                     key={periodIndex}
-                    style={{cursor:"pointer"}}
+                    style={{ cursor: "pointer" }}
                     className={`text-center ${
                       selectedPeriods.some(
                         (sel) =>
@@ -245,7 +252,12 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
       <div className="row mb-4">
         <div className="col-md-6 d-flex align-items-center gap-4">
           <div className="btn-group" role="group">
-            <button type="button" className={`btn btn-success`} onClick={handleSave} data-bs-dismiss="modal">
+            <button
+              type="button"
+              className={`btn btn-success`}
+              onClick={handleSave}
+              data-bs-dismiss="modal"
+            >
               Save Changes
             </button>
             <button
@@ -257,7 +269,13 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, title }) => {
             </button>
           </div>
           <div className="">
-            <p className="">{showPositiveMessage ? "Updating..." : (showNegativeMessage ? "Cannot swap" : null)}</p>
+            <p className="">
+              {showPositiveMessage
+                ? "Updating..."
+                : showNegativeMessage
+                ? "Cannot swap"
+                : null}
+            </p>
           </div>
         </div>
         <div className="col-md-6">

@@ -17,12 +17,12 @@ function DashbordPage() {
 
  useEffect(() => {
   const updateName = async () => {
-    if (isSignedIn && user  &&  typeof state.name === "string" && state.name.trim() !== "") {
-      console.log("Updating with name:", state.name);
+    if (isSignedIn && user  && state && typeof state.name === "string" && state.name.trim() !== "") {
+      
 
       try {
         await user.update({ firstName: state.name });
-        console.log("Name updated!");
+
       } catch (error) {
         console.error("Update failed:", error);
       }
@@ -55,7 +55,7 @@ function DashbordPage() {
     };
 
     fetchTimetables();
-  }, []);
+  }, [isSignedIn,user]);
 
   const handleDelete = async (timetableId) => {
     try {
@@ -103,14 +103,14 @@ function DashbordPage() {
         <div className="mt-5">
           <h3>Recent Timetables</h3>
 
-          {isLoading && (
+          {(isLoading || !isSignedIn) && (
             <div className="w-100 d-flex gap-3 align-items-center justify-content-center mt-4 border border-success border-2 rounded-4 p-4">
               <div className="spinner-grow" style={{ color: "green" }} />
               <p className="fs-4 pt-3">Loading</p>
             </div>
           )}
 
-          {!isLoading && timetables.length == 0 && (
+          {!isLoading && isSignedIn && timetables.length == 0 && (
             <div className="w-100 d-flex gap-3 align-items-center justify-content-center mt-4 border border-2 rounded-4 p-4">
               <p className="fs-4 pt-3">No timetables created</p>
             </div>
@@ -132,6 +132,12 @@ function DashbordPage() {
                           classTimetable: timetable.class_timetable,
                           teacherTimetable: timetable.teacher_timetable,
                           timetableId: timetable._id.toString(),
+                          teacherData : timetable.teacherData,
+                          classes: timetable.classes,
+                          subjects: timetable.subjects, 
+                          workingDays: timetable.workingDays, 
+                          periods: timetable.periods, 
+                          title: timetable.title,
                         },
                       })
                     }

@@ -6,23 +6,38 @@ import DropdownChecklist from "./components/DropdownChecklist";
 import TimetableDisplay from "./TimetableDisplay";
 import EditTimetable from "./components/EditTimetable";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import toast from "react-hot-toast";
+
 
 function AddTeacher() {
   const navigate = useNavigate();
-  const {getToken} = useAuth()
-  const {user} = useUser()
+  const { getToken } = useAuth();
+  const { user } = useUser();
   const { state } = useLocation();
-  const { classes, subjects, workingDays, periods, title } = state || {};
-  const [teachers, setTeachers] = useState([
-    {
-      name: "",
-      subjects: [],
-      class: "",
-      mainSubject: "",
-      labPeriod: "",
-      periods: [{ class: "", subject: "", noOfPeriods: "" }],
-    },
-  ]);
+  const {
+    classes,
+    subjects,
+    workingDays,
+    periods,
+    title,
+    teacherData,
+    timetableId,
+  } = state || {};
+  const [teachers, setTeachers] = useState(() => {
+    if (teacherData) {
+      return teacherData;
+    }
+    return [
+      {
+        name: "",
+        subjects: [],
+        assigned_class: "",
+        mainSubject: "",
+        labPeriod: "",
+        periods: [{ class_name: "", subject: "", noOfPeriods: "" }],
+      },
+    ];
+  });
   const [loading, setLoading] = useState(false);
   const [timetableData, setTimetableData] = useState(null);
   const [error, setError] = useState("");
@@ -35,10 +50,10 @@ function AddTeacher() {
       ...teachers,
       {
         name: "",
-        class: "",
+        assigned_class: "",
         mainSubject: "",
         labPeriod: "",
-        periods: [{ class: "", subject: "", noOfPeriods: "" }],
+        periods: [{ _name: "", subject: "", noOfPeriods: "" }],
         subjects: [],
       },
     ]);
@@ -55,7 +70,7 @@ function AddTeacher() {
     const newTeachers = [...teachers];
     newTeachers[index].periods = [
       ...newTeachers[index].periods,
-      { class: "", subject: "", noOfPeriods: "" },
+      { class_name: "", subject: "", noOfPeriods: "" },
     ];
     setTeachers(newTeachers);
   };
@@ -72,7 +87,7 @@ function AddTeacher() {
 
   const handleChangePeriodClass = (index, ind, clas) => {
     const newTeachers = [...teachers];
-    newTeachers[index].periods[ind].class = clas;
+    newTeachers[index].periods[ind].class_name = clas;
     setTeachers(newTeachers);
   };
 
@@ -96,7 +111,7 @@ function AddTeacher() {
 
   const handleChangeClass = (index, grade) => {
     const newTeachers = [...teachers];
-    newTeachers[index].class = grade;
+    newTeachers[index].assigned_class = grade;
     setTeachers(newTeachers);
   };
 
@@ -135,7 +150,9 @@ function AddTeacher() {
           throw new Error(`Please select main subject for ${teacher.name}`);
         }
         if (
-          teacher.periods.some((p) => !p.class || !p.subject || !p.noOfPeriods)
+          teacher.periods.some(
+            (p) => !p.class_name || !p.subject || !p.noOfPeriods
+          )
         ) {
           throw new Error(
             `Please fill all period assignments for ${teacher.name}`
@@ -148,7 +165,7 @@ function AddTeacher() {
 
       // Prepare data for API
       const requestData = {
-        userId : user.id,
+        userId: user.id,
         title: title,
         workingDays: parseInt(workingDays) || 5,
         periods: parseInt(periods) || 8,
@@ -163,24 +180,29 @@ function AddTeacher() {
               ? teacher.labPeriod
               : null,
           assigned_class:
-            teacher.class !== "Select Class" ? teacher.class : null,
+            teacher.assigned_class !== "Select Class"
+              ? teacher.assigned_class
+              : null,
           periods: teacher.periods.map((p) => ({
-            class_name: p.class,
+            class_name: p.class_name,
             subject: p.subject,
             noOfPeriods: p.noOfPeriods,
           })),
         })),
       };
 
-      console.log("Sending request:", requestData);
       const token = await getToken();
-      const response = await fetchWithAuth(token,"http://localhost:8000/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
+      const response = await fetchWithAuth(
+        token,
+        "http://localhost:8000/generate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -188,7 +210,6 @@ function AddTeacher() {
       }
 
       const data = await response.json();
-      console.log("Response:", data);
 
       setTimetableData(data);
     } catch (err) {
@@ -216,23 +237,63 @@ function AddTeacher() {
   const handleSavetoDb = async () => {
     try {
       if (timetableData !== null) {
-        
-        const token = await getToken();
-        const response = await fetchWithAuth(token,"http://localhost:8000/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(timetableData),
-        });
-        const result = await response.json();
-
-        navigate(`/display/${result.id}`, {
-          state: {
-            classTimetable: timetableData.class_timetable,
-            teacherTimetable: timetableData.teacher_timetable,
-          },
-        });
+        if (timetableId) {
+          const token = await getToken();
+          const response = await fetchWithAuth(
+            token,
+            `http://localhost:8000/update-timetable/${timetableId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(timetableData),
+            }
+          );
+          const result = await response.json();
+          toast.success("Timetable saved successfully");
+          navigate(`/display/${timetableId}`, {
+            state: {
+              classTimetable: timetableData.class_timetable,
+              teacherTimetable: timetableData.teacher_timetable,
+              timetableId: timetableId,
+              teacherData: result.teacherData,
+              classes: result.classes,
+              subjects: result.subjects,
+              workingDays: result.workingDays,
+              periods: result.periods,
+              title: result.title,
+            },
+          });
+        } else {
+          const token = await getToken();
+          const response = await fetchWithAuth(
+            token,
+            "http://localhost:8000/add",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(timetableData),
+            }
+          );
+          const result = await response.json();
+          toast.success("Timetable saved successfully");
+          navigate(`/display/${result._id.toString()}`, {
+            state: {
+              classTimetable: timetableData.class_timetable,
+              teacherTimetable: timetableData.teacher_timetable,
+              timetableId: result._id.toString(),
+              teacherData: result.teacherData,
+              classes: result.classes,
+              subjects: result.subjects,
+              workingDays: result.workingDays,
+              periods: result.periods,
+              title: result.title,
+            },
+          });
+        }
       }
     } catch (error) {
       console.log("Error in saving", error);
@@ -255,22 +316,25 @@ function AddTeacher() {
                 <X className="me-2" size={16} />
                 Save
               </button>
-              <button
-                className="btn btn-warning btn-lg"
-                onClick={handleBackToTeachers}
-                title="Go back to edit teachers"
-              >
-                <X className="me-2" size={16} />
-                Edit Teachers
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#exampleModal"
-              >
-                Edit timetable
-              </button>
+              
+                  <button
+                    className="btn btn-warning btn-lg"
+                    onClick={handleBackToTeachers}
+                    title="Go back to edit teachers"
+                  >
+                    <X className="me-2" size={16} />
+                    Edit Teachers
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#exampleModal"
+                  >
+                    Edit timetable
+                  </button>
+                
+
               <button
                 className="btn btn-success btn-lg"
                 onClick={handleRegenerateWithCurrentData}
@@ -294,6 +358,7 @@ function AddTeacher() {
           <TimetableDisplay
             classTimetable={timetableData.class_timetable}
             teacherTimetable={timetableData.teacher_timetable}
+            showEditOptions= {savedTeachersData}
           />
 
           <div
@@ -317,7 +382,10 @@ function AddTeacher() {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <EditTimetable classTimetable={timetableData.class_timetable} teacherTimetable={timetableData.teacher_timetable}/>
+                  <EditTimetable
+                    classTimetable={timetableData.class_timetable}
+                    teacherTimetable={timetableData.teacher_timetable}
+                  />
                 </div>
                 <div className="modal-footer">
                   <button
@@ -457,7 +525,7 @@ function AddTeacher() {
                 <select
                   className="form-select border border-0 me-3 w-25"
                   style={{ height: "40px" }}
-                  value={teacher.class}
+                  value={teacher.assigned_class}
                   onChange={(e) => handleChangeClass(index, e.target.value)}
                 >
                   <option>Select Class</option>
@@ -481,7 +549,7 @@ function AddTeacher() {
                         <select
                           className="form-select border border-0 me-3"
                           style={{ height: "40px" }}
-                          value={period.class}
+                          value={period.class_name}
                           onChange={(e) =>
                             handleChangePeriodClass(index, ind, e.target.value)
                           }

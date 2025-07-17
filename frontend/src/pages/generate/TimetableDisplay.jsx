@@ -1,28 +1,43 @@
-import React, { useState,useEffect } from 'react';
-import { useLocation } from 'react-router';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import EditTimetable from "./components/EditTimetable";
 
-const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initialTeacher, }) => {
+const TimetableDisplay = ({
+  classTimetable: initialClass,
+  teacherTimetable: initialTeacher,
+  showEditOptions
+}) => {
   const location = useLocation();
-  const [viewMode, setViewMode] = useState('class');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [viewMode, setViewMode] = useState("class");
+  const [selectedItem, setSelectedItem] = useState("");
   const [classTimetable, setClassTimetable] = useState(initialClass || []);
-  const [teacherTimetable, setTeacherTimetable] = useState(initialTeacher || []);
-  const [id,setId] = useState()
-
-   useEffect(() => {
+  const [teacherTimetable, setTeacherTimetable] = useState(
+    initialTeacher || []
+  );
+  const [id, setId] = useState();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
     if (location.state && (!initialClass || !initialTeacher)) {
       setClassTimetable(location.state.classTimetable);
       setTeacherTimetable(location.state.teacherTimetable);
-      setId(location.state.timetableId)
-      
+      setId(location.state.timetableId);
     }
   }, [location]);
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6', 'Period 7', 'Period 8'];
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const periods = [
+    "Period 1",
+    "Period 2",
+    "Period 3",
+    "Period 4",
+    "Period 5",
+    "Period 6",
+    "Period 7",
+    "Period 8",
+  ];
 
-  const currentData = viewMode === 'class' ? classTimetable : teacherTimetable;
+  const currentData = viewMode === "class" ? classTimetable : teacherTimetable;
   const items = currentData ? Object.keys(currentData) : [];
 
   // Auto-select first item when data is available
@@ -48,7 +63,9 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
             <tr>
               <th>Day/Period</th>
               {periods.slice(0, data[0]?.length || 8).map((period, index) => (
-                <th key={index} className="text-center">{period}</th>
+                <th key={index} className="text-center">
+                  {period}
+                </th>
               ))}
             </tr>
           </thead>
@@ -58,7 +75,7 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
                 <td className="fw-bold">{days[dayIndex]}</td>
                 {dayData.map((period, periodIndex) => (
                   <td key={periodIndex} className="text-center">
-                    {period === 'Free' || period === '' ? (
+                    {period === "Free" || period === "" ? (
                       <span className="text-muted">Free</span>
                     ) : (
                       <span className="badge bg-primary">{period}</span>
@@ -80,20 +97,24 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
           <div className="btn-group" role="group">
             <button
               type="button"
-              className={`btn ${viewMode === 'class' ? 'btn-primary' : 'btn-outline-primary'}`}
+              className={`btn ${
+                viewMode === "class" ? "btn-primary" : "btn-outline-primary"
+              }`}
               onClick={() => {
-                setViewMode('class');
-                setSelectedItem(Object.keys(classTimetable)[0] || '');
+                setViewMode("class");
+                setSelectedItem(Object.keys(classTimetable)[0] || "");
               }}
             >
               Class Timetables
             </button>
             <button
               type="button"
-              className={`btn ${viewMode === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
+              className={`btn ${
+                viewMode === "teacher" ? "btn-primary" : "btn-outline-primary"
+              }`}
               onClick={() => {
-                setViewMode('teacher');
-                setSelectedItem(Object.keys(teacherTimetable)[0] || '');
+                setViewMode("teacher");
+                setSelectedItem(Object.keys(teacherTimetable)[0] || "");
               }}
             >
               Teacher Timetables
@@ -106,7 +127,9 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
             value={selectedItem}
             onChange={(e) => setSelectedItem(e.target.value)}
           >
-            <option value="">Select {viewMode === 'class' ? 'Class' : 'Teacher'}</option>
+            <option value="">
+              Select {viewMode === "class" ? "Class" : "Teacher"}
+            </option>
             {items.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -120,7 +143,7 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
         <div className="card">
           <div className="card-header">
             <h4 className="mb-0">
-              {viewMode === 'class' ? 'Class' : 'Teacher'}: {selectedItem}
+              {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
             </h4>
           </div>
           <div className="card-body">
@@ -131,53 +154,84 @@ const TimetableDisplay = ({ classTimetable:initialClass, teacherTimetable:initia
 
       {!selectedItem && (
         <div className="alert alert-info text-center">
-          Please select a {viewMode === 'class' ? 'class' : 'teacher'} to view the timetable
+          Please select a {viewMode === "class" ? "class" : "teacher"} to view
+          the timetable
         </div>
       )}
-      <button
-                type="button"
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#exampleModal"
-              >
-                Edit timetable
-              </button>
-      <div
-            className="modal fade"
-            id="exampleModal"
-            tabIndex="-1"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
+
+      {location.state.timetableId && !showEditOptions &&(
+        <>
+          <button
+            type="button"
+            className="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#exampleModal"
           >
-            <div className="modal-dialog modal-xl">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Edit TimeTable
-                  </h1>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <EditTimetable classTimetable={classTimetable} teacherTimetable={teacherTimetable} id={id}/>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                  >
-                    Close
-                  </button>
-                  
-                </div>
-              </div>
+            Edit timetable
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() =>
+              navigate("/generate/add-teachers", {
+                state: {
+                  teacherData: location.state.teacherData,
+                  classes: location.state.classes,
+                  subjects: location.state.subjects,
+                  workingDays: location.state.workingDays,
+                  periods: location.state.periods,
+                  title: location.state.title,
+                  timetableId: location.state.timetableId,
+                },
+              })
+            }
+          >
+            Edit teachers
+          </button>
+        </>
+      )}
+
+      <div
+        className="modal fade"
+        id="exampleModal"
+        tabIndex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-xl">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">
+                Edit TimeTable
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <EditTimetable
+                classTimetable={classTimetable}
+                teacherTimetable={teacherTimetable}
+                id={id}
+                teacherData={location.state.teacherData}
+              />
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
             </div>
           </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -7,6 +7,7 @@ from generator import generate_from_input
 from dotenv import load_dotenv
 from datetime import datetime
 from bson import ObjectId
+from fastapi.encoders import jsonable_encoder
 from pytz import timezone
 import pymongo
 
@@ -55,7 +56,8 @@ class TimetableRequest(BaseModel):
     subjects: List[str]
     teachers: List[TeacherInput]
     userId : str 
-    title : str
+    title : Optional[str] = None
+    
 
 @app.post("/generate")
 async def generate_timetable(request: TimetableRequest):
@@ -109,7 +111,12 @@ async def generate_timetable(request: TimetableRequest):
             "message": "✅ Timetable generated successfully",
             "status": "FEASIBLE",
             "userId" : request.userId,
-            "title" : request.title
+            "title" : request.title,
+            "teacherData":request.teachers,
+            "classes":request.classes,
+            "subjects":request.subjects,
+            "workingDays":request.workingDays,
+            "periods":request.periods
         }
 
     except Exception as e:
@@ -124,7 +131,9 @@ async def add_timetable(request: Request):
     india = timezone("Asia/Kolkata")
     data["createdAt"] = datetime.now(india).isoformat()
     result = collection.insert_one(data)
-    return {"message": "Saved!", "id": str(result.inserted_id)}
+    inserted_doc = collection.find_one({"_id":result.inserted_id})
+    inserted_doc["_id"] = str(inserted_doc["_id"])  
+    return jsonable_encoder(inserted_doc)
 
 @app.get("/get-timetables/{user_id}")
 def get_timetables(user_id: str):
@@ -143,12 +152,13 @@ def get_timetables(user_id: str):
 async def update_timetable(timetable_id: str, request:Request):
     data = await request.json()
     india = timezone("Asia/Kolkata")
-    data["createdAt"] = datetime.now(india).isoformat()
-    result = collection.update_one(
+    updated_doc = collection.find_one_and_update(
         {"_id": ObjectId(timetable_id)},
-        {"$set": data}
+        {"$set": {"class_timetable": data["class_timetable"],"teacher_timetable":data["teacher_timetable"],"createdAt":datetime.now(india).isoformat(),"teacherData":data["teacherData"]}},
+        return_document=pymongo.ReturnDocument.AFTER
     )
-    return {"message": "Saved!", "id": timetable_id}
+    updated_doc["_id"] = str(updated_doc["_id"])  
+    return jsonable_encoder(updated_doc)
 
 @app.delete("/delete-timetable/{timetable_id}")
 async def delete_timetable(timetable_id: str):
