@@ -13,10 +13,10 @@ function AddTeacher() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { state } = useLocation();
-  const location = useLocation()
+  const location = useLocation();
   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+    window.scrollTo(0, 0);
+  }, []);
   const {
     classes,
     subjects,
@@ -224,7 +224,7 @@ function AddTeacher() {
   };
 
   const handleBackToTeachers = () => {
-    console.log(savedTeachersData)
+    console.log(savedTeachersData);
     // Restore the saved teachers data when going back
     if (savedTeachersData) {
       setTeachers(savedTeachersData);
@@ -320,7 +320,7 @@ function AddTeacher() {
                 <Save className="icon-ge" />
                 Save
               </button>
-              
+
               <button
                 className="action-button edit-button"
                 onClick={handleBackToTeachers}
@@ -329,12 +329,25 @@ function AddTeacher() {
                 <span className="button-icon-td">👥</span>
                 Edit Teachers
               </button>
-              
+
               <button
                 type="button"
                 className="action-button primary-button"
-                data-bs-toggle="modal"
-                data-bs-target="#exampleModal"
+                onClick={() =>
+                  navigate("/edit-timetable", {
+                    state: {
+                      classTimetable: timetableData.class_timetable,
+                      teacherTimetable: timetableData.teacher_timetable,
+                      id: location.state?.timetableId,
+                      teacherData: location.state?.teacherData || timetableData.teacherData ,
+                      classes: location.state?.classes || timetableData.classes,
+                      subjects: location.state?.subjects || timetableData.subjects,
+                      workingDays: location.state?.workingDays || timetableData.workingDays,
+                      periods: location.state?.periods || timetableData.periods,
+                      title: location.state?.title || timetableData.title,
+                    },
+                  })
+                }
               >
                 <span className="button-icon-td">✏️</span>
                 Edit timetable
@@ -360,46 +373,12 @@ function AddTeacher() {
               </button>
             </div>
           </div>
-          
+
           <TimetableDisplay
             classTimetable={timetableData.class_timetable}
             teacherTimetable={timetableData.teacher_timetable}
             showEditOptions={savedTeachersData}
           />
-
-          {/* Modal remains unchanged */}
-          <div
-            className="modal fade"
-            id="exampleModal"
-            tabIndex="-1"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div className="modal-dialog modal-xl">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Edit TimeTable
-                  </h1>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <EditTimetable
-                    classTimetable={timetableData.class_timetable}
-                    teacherTimetable={timetableData.teacher_timetable}
-                    id={location.state?.timetableId}
-                    teacherData = {location.state?.teacherData}
-                  />
-                </div>
-                
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -418,11 +397,7 @@ function AddTeacher() {
           )}
         </div>
 
-        {error && (
-          <div className="error-alert">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-alert">{error}</div>}
 
         <div className="teachers-container">
           {teachers.map((teacher, index) => {
@@ -506,7 +481,9 @@ function AddTeacher() {
                 </div>
 
                 <div className="class-teacher-section">
-                  <label className="class-teacher-label">If class teacher, select class</label>
+                  <label className="class-teacher-label">
+                    If class teacher, select class
+                  </label>
                   <select
                     className="form-select-ge class-select"
                     value={teacher.assigned_class}
@@ -535,7 +512,11 @@ function AddTeacher() {
                               className="form-select-ge"
                               value={period.class_name}
                               onChange={(e) =>
-                                handleChangePeriodClass(index, ind, e.target.value)
+                                handleChangePeriodClass(
+                                  index,
+                                  ind,
+                                  e.target.value
+                                )
                               }
                             >
                               <option>Select Class</option>
@@ -581,7 +562,11 @@ function AddTeacher() {
                               placeholder="No of periods"
                               value={period.noOfPeriods}
                               onChange={(e) =>
-                                handleChangePeriodNumber(index, ind, e.target.value)
+                                handleChangePeriodNumber(
+                                  index,
+                                  ind,
+                                  e.target.value
+                                )
                               }
                             />
                           </div>

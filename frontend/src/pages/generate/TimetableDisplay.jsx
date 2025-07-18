@@ -20,16 +20,13 @@ const TimetableDisplay = ({
   const [teacherTimetable, setTeacherTimetable] = useState(
     initialTeacher || []
   );
-  
-  const navigate = useNavigate();
 
-  
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state && (!initialClass || !initialTeacher)) {
       setClassTimetable(location.state.classTimetable);
       setTeacherTimetable(location.state.teacherTimetable);
-      
     }
   }, [location]);
 
@@ -156,8 +153,16 @@ const TimetableDisplay = ({
               <button
                 type="button"
                 className="action-button-td edit-timetable-button-td"
-                data-bs-toggle="modal"
-                data-bs-target="#exampleModal"
+                onClick={() =>
+                  navigate("/edit-timetable", {
+                    state: {
+                      classTimetable: classTimetable,
+                      teacherTimetable: teacherTimetable,
+                      id: location.state.timetableId,
+                      teacherData: location.state.teacherData,
+                    },
+                  })
+                }
               >
                 <span className="button-icon-td">✏️</span>
                 Edit timetable
@@ -275,80 +280,6 @@ const TimetableDisplay = ({
               view the timetable
             </div>
           )}
-
-         
-
-          {!showEditOptions && (
- 
-            // <div
-            //   className="modal fade"
-            //   id="exampleModal"
-            //   tabIndex="-1"
-            //   aria-labelledby="exampleModalLabel"
-            //   aria-hidden="true"
-            // >
-            //   <div className="modal-dialog modal-xl">
-            //     <div className="modal-content modal-content-td">
-            //       <div className="modal-header modal-header-td d-flex justify-content-between">
-            //         <h1 className="modal-title-td" id="exampleModalLabel">
-            //           Edit TimeTable
-            //         </h1>
-            //         <button
-            //           type="button"
-            //           className="modal-close-td"
-            //           data-bs-dismiss="modal"
-            //           aria-label="Close"
-            //         >
-            //           ×
-            //         </button>
-            //       </div>
-            //       <div className="modal-body modal-body-td">
-            //         <EditTimetable
-            //           classTimetable={classTimetable}
-            //           teacherTimetable={teacherTimetable}
-            //           id={location.state.timetableId}
-            //           teacherData={location.state.teacherData}
-            //         />
-            //       </div>
-            //     </div>
-            //   </div>
-            
-            <div
-            className="modal fade"
-            id="exampleModal"
-            tabIndex="-1"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div className="modal-dialog modal-xl">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Edit TimeTable
-                  </h1>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <EditTimetable
-                    classTimetable={classTimetable}
-                    teacherTimetable={teacherTimetable}
-                    id={location.state.timetableId}
-                    teacherData = {location.state.teacherData}
-                  />
-                </div>
-                
-              </div>
-            </div>
-          </div>
-         
-          )}
-
-         
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import AddTeacher from './pages/generate/AddTeacher';
 import { Toaster } from 'react-hot-toast';
 import TimetableDisplay from './pages/generate/TimetableDisplay';
 import GuidePage from './pages/home/GuidePage'; // ✅ added
+import EditTimetable from './pages/generate/components/EditTimetable';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/generate" element={<GeneratePage />} />
           <Route path="/generate/add-teachers" element={<AddTeacher />} />
           <Route path="/dashboard" element={<DashbordPage />} />
+          <Route path="/edit-timetable" element={<EditTimetable />} />
           <Route path="/display/:id" element={<TimetableDisplay />} />
           <Route path="/guide" element={<GuidePage />} /> {/* ✅ added */}
         </Route>
