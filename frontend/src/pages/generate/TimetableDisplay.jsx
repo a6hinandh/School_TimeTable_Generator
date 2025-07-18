@@ -15,20 +15,28 @@ const TimetableDisplay = ({
 }) => {
   const location = useLocation();
   const [viewMode, setViewMode] = useState("class");
-  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedItem, setSelectedItem] = useState("all");
   const [classTimetable, setClassTimetable] = useState(initialClass || []);
   const [teacherTimetable, setTeacherTimetable] = useState(
     initialTeacher || []
   );
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.state && (!initialClass || !initialTeacher)) {
+  if (location.state) {
+    if (location.state.classTimetable || location.state.teacherTimetable) {
       setClassTimetable(location.state.classTimetable);
       setTeacherTimetable(location.state.teacherTimetable);
     }
-  }, [location]);
+
+    if (location.state.message && location.state.status === "ERROR") {
+      setErrorMessage(location.state.message);
+    }
+  }
+}, [location]);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -50,54 +58,204 @@ const TimetableDisplay = ({
   const items = currentData ? Object.keys(currentData) : [];
 
   useEffect(() => {
-    if (items.length > 0 && !selectedItem) {
+    if (items.length > 0 && selectedItem !== "all" && !selectedItem) {
       setSelectedItem(items[0]);
     }
   }, [items, selectedItem]);
 
-  if (!classTimetable || !teacherTimetable) {
-    return (
-      <div className="dark-gradient-bg-td">
-        <div className="container-td">
-          <div className="no-data-alert-td">No timetable data available</div>
+  if (
+  (!classTimetable || Object.keys(classTimetable).length === 0) &&
+  (!teacherTimetable || Object.keys(teacherTimetable).length === 0)
+) {
+  return (
+    <div className="dark-gradient-bg-td">
+      <div className="container-td">
+        <div className="no-data-alert-td">
+          {errorMessage
+            ? errorMessage
+            : "No timetable data available."}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   const exportAsPDF = async () => {
-    const input = document.getElementById("timetable-container");
-    if (!input) return;
+  const isAll = selectedItem === "all";
+  const itemsToExport = isAll ? items : [selectedItem];
+  const container = document.createElement("div");
 
-    const canvas = await html2canvas(input, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("landscape", "mm", "a4");
+  // Style container
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "1120px"; // ~A4 width in px at 96 DPI
+  container.style.padding = "20px";
+  container.style.backgroundColor = "#fff";
+  container.style.color = "#000";
+  container.style.fontFamily = "Arial, sans-serif";
 
-    const imgProps = pdf.getImageProperties(imgData);
+  // Optional title
+  const title = document.createElement("h2");
+  title.textContent = isAll
+    ? `All ${viewMode === "class" ? "Class" : "Teacher"} Timetables`
+    : `${viewMode === "class" ? "Class" : "Teacher"}: ${selectedItem}`;
+  title.style.textAlign = "center";
+  title.style.marginBottom = "30px";
+  container.appendChild(title);
+
+  // Loop through items (all or just one)
+  for (const item of itemsToExport) {
+    const data = currentData[item];
+    if (!data || !data.length) continue;
+
+    const section = document.createElement("div");
+    section.style.marginBottom = "40px";
+
+    const header = document.createElement("h3");
+    header.textContent = `${viewMode === "class" ? "Class" : "Teacher"}: ${item}`;
+    header.style.marginBottom = "10px";
+    header.style.textAlign = "left";
+    header.style.color = "#000";
+    section.appendChild(header);
+
+    // Create simple clean table
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+    table.style.fontSize = "12px";
+
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+
+    const thDay = document.createElement("th");
+    thDay.textContent = "Day/Period";
+    thDay.style.border = "1px solid #000";
+    thDay.style.padding = "6px";
+    thDay.style.backgroundColor = "#eaeaea";
+    headRow.appendChild(thDay);
+
+    periods.slice(0, data[0].length).forEach((period) => {
+      const th = document.createElement("th");
+      th.textContent = period;
+      th.style.border = "1px solid #000";
+      th.style.padding = "6px";
+      th.style.backgroundColor = "#eaeaea";
+      headRow.appendChild(th);
+    });
+
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    data.forEach((rowData, dayIndex) => {
+      const tr = document.createElement("tr");
+
+      const tdDay = document.createElement("td");
+      tdDay.textContent = days[dayIndex];
+      tdDay.style.border = "1px solid #000";
+      tdDay.style.padding = "6px";
+      tdDay.style.backgroundColor = "#f5f5f5";
+      tr.appendChild(tdDay);
+
+      rowData.forEach((period) => {
+        const td = document.createElement("td");
+        td.textContent = period || "Free";
+        td.style.border = "1px solid #000";
+        td.style.padding = "6px";
+        td.style.textAlign = "center";
+        td.style.color = "#000";
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    section.appendChild(table);
+    container.appendChild(section);
+  }
+
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 1.5,
+      useCORS: true,
+      backgroundColor: "#ffffff"
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.9); // Good compression
+    const pdf = new jsPDF("portrait", "mm", "a4");
+
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
-    pdf.save(`${viewMode}_${selectedItem}_timetable.pdf`);
-  };
+    if (imgHeight > pdf.internal.pageSize.getHeight()) {
+      let y = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      while (y < imgHeight) {
+        if (y > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, -y, pdfWidth, imgHeight);
+        y += pageHeight;
+      }
+    } else {
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, imgHeight);
+    }
+
+    const filename = isAll
+      ? `all_${viewMode}_timetables.pdf`
+      : `${viewMode}_${selectedItem}_timetable.pdf`;
+
+    pdf.save(filename);
+  } catch (err) {
+    console.error("PDF export failed", err);
+    alert("PDF export failed. Please try again.");
+  } finally {
+    document.body.removeChild(container);
+  }
+};
+
 
   const exportAsExcel = () => {
-    const data = currentData[selectedItem];
-    if (!data) return;
-
-    const table = [
-      ["Day/Period", ...periods.slice(0, data[0]?.length || 8)],
-      ...data.map((row, i) => [days[i], ...row]),
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(table);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Timetable");
+    const combined = [];
 
+    if (selectedItem === "all") {
+      items.forEach((item) => {
+        const data = currentData[item];
+        if (data) {
+          combined.push([`${viewMode === "class" ? "Class" : "Teacher"}: ${item}`]);
+          combined.push(["Day/Period", ...periods.slice(0, data[0]?.length || 8)]);
+          data.forEach((row, i) => {
+            combined.push([days[i], ...row]);
+          });
+          combined.push([]); // empty row between timetables
+        }
+      });
+    } else {
+      const data = currentData[selectedItem];
+      if (data) {
+        combined.push(["Day/Period", ...periods.slice(0, data[0]?.length || 8)]);
+        data.forEach((row, i) => {
+          combined.push([days[i], ...row]);
+        });
+      }
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(combined);
+    XLSX.utils.book_append_sheet(wb, ws, "Timetables");
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+    const filename = selectedItem === "all" 
+      ? `all_${viewMode}_timetables.xlsx`
+      : `${viewMode}_${selectedItem}_timetable.xlsx`;
+
     saveAs(
       new Blob([wbout], { type: "application/octet-stream" }),
-      `${viewMode}_${selectedItem}_timetable.xlsx`
+      filename
     );
   };
 
@@ -136,6 +294,32 @@ const TimetableDisplay = ({
             ))}
           </tbody>
         </table>
+      </div>
+    );
+  };
+
+  const renderAllTimetables = () => {
+    if (!currentData || Object.keys(currentData).length === 0) {
+      return <div className="no-data-message-td">No data available</div>;
+    }
+
+    return (
+      <div className="all-timetables-container">
+        {items.map((item) => (
+          <div key={item} className="individual-timetable-section" style={{ marginBottom: '3rem' }}>
+            <h5 style={{
+              marginBottom: '1rem',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#f8f9fa',
+              color: '#212529',
+              borderRadius: '8px',
+              fontWeight: 'bold'
+            }}>
+              {viewMode === "class" ? "Class" : "Teacher"}: {item}
+            </h5>
+            {renderTimetable(currentData[item])}
+          </div>
+        ))}
       </div>
     );
   };
@@ -202,7 +386,7 @@ const TimetableDisplay = ({
                   }`}
                   onClick={() => {
                     setViewMode("class");
-                    setSelectedItem(Object.keys(classTimetable)[0] || "");
+                    setSelectedItem("all");
                   }}
                 >
                   Class Timetables
@@ -214,7 +398,7 @@ const TimetableDisplay = ({
                   }`}
                   onClick={() => {
                     setViewMode("teacher");
-                    setSelectedItem(Object.keys(teacherTimetable)[0] || "");
+                    setSelectedItem("all");
                   }}
                 >
                   Teacher Timetables
@@ -230,8 +414,8 @@ const TimetableDisplay = ({
                 value={selectedItem}
                 onChange={(e) => setSelectedItem(e.target.value)}
               >
-                <option value="">
-                  Select {viewMode === "class" ? "Class" : "Teacher"}
+                <option value="all">
+                  All {viewMode === "class" ? "Classes" : "Teachers"}
                 </option>
                 {items.map((item) => (
                   <option key={item} value={item}>
@@ -242,44 +426,41 @@ const TimetableDisplay = ({
             </div>
           </div>
 
-          {selectedItem && (
-            <div className="timetable-card-td">
-              <div
-                className="card-header-td"
-                style={{ paddingRight: "1rem", paddingLeft: "1rem" }}
-              >
-                <h4 className="card-title-td">
-                  {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
-                </h4>
-                <div className="export-buttons-td">
-                  <button
-                    className="export-button-td pdf-button-td"
-                    onClick={exportAsPDF}
-                  >
-                    <span className="button-icon-td">📄</span>
-                    Export as PDF
-                  </button>
-                  <button
-                    className="export-button-td excel-button-td"
-                    onClick={exportAsExcel}
-                  >
-                    <span className="button-icon-td">📊</span>
-                    Export as Excel
-                  </button>
-                </div>
-              </div>
-              <div className="card-body-td" id="timetable-container">
-                {renderTimetable(currentData[selectedItem])}
+          <div className="timetable-card-td">
+            <div
+              className="card-header-td"
+              style={{ paddingRight: "1rem", paddingLeft: "1rem" }}
+            >
+              <h4 className="card-title-td">
+                {selectedItem === "all" 
+                  ? `All ${viewMode === "class" ? "Classes" : "Teachers"}` 
+                  : `${viewMode === "class" ? "Class" : "Teacher"}: ${selectedItem}`
+                }
+              </h4>
+              <div className="export-buttons-td">
+                <button
+                  className="export-button-td pdf-button-td"
+                  onClick={exportAsPDF}
+                >
+                  <span className="button-icon-td">📄</span>
+                  Export as PDF
+                </button>
+                <button
+                  className="export-button-td excel-button-td"
+                  onClick={exportAsExcel}
+                >
+                  <span className="button-icon-td">📊</span>
+                  Export as Excel
+                </button>
               </div>
             </div>
-          )}
-
-          {!selectedItem && (
-            <div className="info-alert-td">
-              Please select a {viewMode === "class" ? "class" : "teacher"} to
-              view the timetable
+            <div className="card-body-td" id="timetable-container">
+              {selectedItem === "all" 
+                ? renderAllTimetables() 
+                : renderTimetable(currentData[selectedItem])
+              }
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

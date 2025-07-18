@@ -122,7 +122,12 @@ async def generate_timetable(request: TimetableRequest):
     except Exception as e:
         print(f"Error generating timetable: {e}")
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        return{
+            "message": f"❌ Timetable generation failed due to error: {str(e)}",
+            "class_timetable":{},
+            "teacher_timetable":{},
+            "status":"ERROR"
+        }
     
 
 @app.post("/add")

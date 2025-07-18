@@ -186,4 +186,6 @@ def generate_with_teacher_list(teacher_list: dict, classes: List[str], working_d
         return Timetable(data=class_tt), Timetable(data=teacher_timetables)
 
     print("❌ Timetable generation failed: no feasible solution.")
+    raise ValueError("Timetable generation failed: No feasible solution due to constraints.")
+
     return Timetable(data={}), Timetable(data={})
