@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import EditTimetable from "./components/EditTimetable";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
+import "./TimetableDisplay.css";
 
 const TimetableDisplay = ({
   classTimetable: initialClass,
@@ -16,7 +22,7 @@ const TimetableDisplay = ({
   );
   const [id, setId] = useState();
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     if (location.state && (!initialClass || !initialTeacher)) {
       setClassTimetable(location.state.classTimetable);
@@ -40,45 +46,86 @@ const TimetableDisplay = ({
   const currentData = viewMode === "class" ? classTimetable : teacherTimetable;
   const items = currentData ? Object.keys(currentData) : [];
 
-  // Auto-select first item when data is available
-  React.useEffect(() => {
+  useEffect(() => {
     if (items.length > 0 && !selectedItem) {
       setSelectedItem(items[0]);
     }
   }, [items, selectedItem]);
 
   if (!classTimetable || !teacherTimetable) {
-    return <div className="text-center p-4">No timetable data available</div>;
+    return (
+      <div className="dark-gradient-bg-td">
+        <div className="container-td">
+          <div className="no-data-alert-td">No timetable data available</div>
+        </div>
+      </div>
+    );
   }
+
+  const exportAsPDF = async () => {
+    const input = document.getElementById("timetable-container");
+    if (!input) return;
+
+    const canvas = await html2canvas(input, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("landscape", "mm", "a4");
+
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
+    pdf.save(`${viewMode}_${selectedItem}_timetable.pdf`);
+  };
+
+  const exportAsExcel = () => {
+    const data = currentData[selectedItem];
+    if (!data) return;
+
+    const table = [
+      ["Day/Period", ...periods.slice(0, data[0]?.length || 8)],
+      ...data.map((row, i) => [days[i], ...row]),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(table);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Timetable");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([wbout], { type: "application/octet-stream" }),
+      `${viewMode}_${selectedItem}_timetable.xlsx`
+    );
+  };
 
   const renderTimetable = (data) => {
     if (!data || data.length === 0) {
-      return <div className="text-center p-4">No data available</div>;
+      return <div className="no-data-message-td">No data available</div>;
     }
 
     return (
-      <div className="table-responsive">
-        <table className="table table-bordered table-striped">
-          <thead className="table-dark">
+      <div className="table-container-td">
+        <table className="timetable-table-td">
+          <thead className="table-header-td">
             <tr>
-              <th>Day/Period</th>
+              <th className="header-cell-td">Day/Period</th>
               {periods.slice(0, data[0]?.length || 8).map((period, index) => (
-                <th key={index} className="text-center">
+                <th key={index} className="header-cell-td period-header-td">
                   {period}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="table-body-td">
             {data.map((dayData, dayIndex) => (
-              <tr key={dayIndex}>
-                <td className="fw-bold">{days[dayIndex]}</td>
+              <tr key={dayIndex} className="table-row-td">
+                <td className="day-cell-td">{days[dayIndex]}</td>
                 {dayData.map((period, periodIndex) => (
-                  <td key={periodIndex} className="text-center">
+                  <td key={periodIndex} className="period-cell-td">
                     {period === "Free" || period === "" ? (
-                      <span className="text-muted">Free</span>
+                      <span className="free-period-td">Free</span>
                     ) : (
-                      <span className="badge bg-primary">{period}</span>
+                      <span className="subject-badge-td">{period}</span>
                     )}
                   </td>
                 ))}
@@ -91,143 +138,159 @@ const TimetableDisplay = ({
   };
 
   return (
-    <div className="container-fluid p-4 dark-gradient-bg">
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="btn-group" role="group">
-            <button
-              type="button"
-              className={`btn ${
-                viewMode === "class" ? "btn-primary" : "btn-outline-primary"
-              }`}
-              onClick={() => {
-                setViewMode("class");
-                setSelectedItem(Object.keys(classTimetable)[0] || "");
-              }}
-            >
-              Class Timetables
-            </button>
-            <button
-              type="button"
-              className={`btn ${
-                viewMode === "teacher" ? "btn-primary" : "btn-outline-primary"
-              }`}
-              onClick={() => {
-                setViewMode("teacher");
-                setSelectedItem(Object.keys(teacherTimetable)[0] || "");
-              }}
-            >
-              Teacher Timetables
-            </button>
-          </div>
-        </div>
-        <div className="col-md-6">
-          <select
-            className="form-select"
-            value={selectedItem}
-            onChange={(e) => setSelectedItem(e.target.value)}
-          >
-            <option value="">
-              Select {viewMode === "class" ? "Class" : "Teacher"}
-            </option>
-            {items.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {selectedItem && (
-        <div className="card">
-          <div className="card-header">
-            <h4 className="mb-0">
-              {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
-            </h4>
-          </div>
-          <div className="card-body">
-            {renderTimetable(currentData[selectedItem])}
-          </div>
-        </div>
-      )}
-
-      {!selectedItem && (
-        <div className="alert alert-info text-center">
-          Please select a {viewMode === "class" ? "class" : "teacher"} to view
-          the timetable
-        </div>
-      )}
-
-      {location.state.timetableId && !showEditOptions &&(
-        <>
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-          >
-            Edit timetable
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() =>
-              navigate("/generate/add-teachers", {
-                state: {
-                  teacherData: location.state.teacherData,
-                  classes: location.state.classes,
-                  subjects: location.state.subjects,
-                  workingDays: location.state.workingDays,
-                  periods: location.state.periods,
-                  title: location.state.title,
-                  timetableId: location.state.timetableId,
-                },
-              })
-            }
-          >
-            Edit teachers
-          </button>
-        </>
-      )}
-
-      <div
-        className="modal fade"
-        id="exampleModal"
-        tabIndex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-xl">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">
-                Edit TimeTable
-              </h1>
+    <div className="dark-gradient-bg-td">
+      <div className="container-td">
+        <div className="controls-section-td">
+          <div className="view-mode-controls-td">
+            <div className="button-group-td">
               <button
                 type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <EditTimetable
-                classTimetable={classTimetable}
-                teacherTimetable={teacherTimetable}
-                id={id}
-                teacherData={location.state.teacherData}
-              />
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
+                className={`mode-button-td ${
+                  viewMode === "class" ? "active-mode-td" : ""
+                }`}
+                onClick={() => {
+                  setViewMode("class");
+                  setSelectedItem(Object.keys(classTimetable)[0] || "");
+                }}
               >
-                Close
+                Class Timetables
               </button>
+              <button
+                type="button"
+                className={`mode-button-td ${
+                  viewMode === "teacher" ? "active-mode-td" : ""
+                }`}
+                onClick={() => {
+                  setViewMode("teacher");
+                  setSelectedItem(Object.keys(teacherTimetable)[0] || "");
+                }}
+              >
+                Teacher Timetables
+              </button>
+            </div>
+          </div>
+          <div className="selector-controls-td">
+            <select
+              className="item-selector-td"
+              value={selectedItem}
+              onChange={(e) => setSelectedItem(e.target.value)}
+            >
+              <option value="">
+                Select {viewMode === "class" ? "Class" : "Teacher"}
+              </option>
+              {items.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {selectedItem && (
+          <div className="timetable-card-td">
+            <div className="card-header-td">
+              <h4 className="card-title-td">
+                {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
+              </h4>
+              <div className="export-buttons-td">
+                <button className="export-button-td pdf-button-td" onClick={exportAsPDF}>
+                  <span className="button-icon-td">📄</span>
+                  Export as PDF
+                </button>
+                <button className="export-button-td excel-button-td" onClick={exportAsExcel}>
+                  <span className="button-icon-td">📊</span>
+                  Export as Excel
+                </button>
+              </div>
+            </div>
+            <div className="card-body-td" id="timetable-container">
+              {renderTimetable(currentData[selectedItem])}
+            </div>
+          </div>
+        )}
+
+        {!selectedItem && (
+          <div className="info-alert-td">
+            Please select a {viewMode === "class" ? "class" : "teacher"} to view
+            the timetable
+          </div>
+        )}
+
+        {location.state?.timetableId && !showEditOptions && (
+          <div className="action-buttons-section-td">
+            <button
+              type="button"
+              className="action-button-td edit-timetable-button-td"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal"
+            >
+              <span className="button-icon-td">✏️</span>
+              Edit timetable
+            </button>
+
+            <button
+              type="button"
+              className="action-button-td edit-teachers-button-td"
+              onClick={() =>
+                navigate("/generate/add-teachers", {
+                  state: {
+                    teacherData: location.state.teacherData,
+                    classes: location.state.classes,
+                    subjects: location.state.subjects,
+                    workingDays: location.state.workingDays,
+                    periods: location.state.periods,
+                    title: location.state.title,
+                    timetableId: location.state.timetableId,
+                  },
+                })
+              }
+            >
+              <span className="button-icon-td">👥</span>
+              Edit teachers
+            </button>
+          </div>
+        )}
+
+        <div
+          className="modal fade"
+          id="exampleModal"
+          tabIndex="-1"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog modal-xl">
+            <div className="modal-content modal-content-td">
+              <div className="modal-header modal-header-td">
+                <h1 className="modal-title-td" id="exampleModalLabel">
+                  Edit TimeTable
+                </h1>
+                <button
+                  type="button"
+                  className="modal-close-td"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="modal-body modal-body-td">
+                <EditTimetable
+                  classTimetable={classTimetable}
+                  teacherTimetable={teacherTimetable}
+                  id={id}
+                  teacherData={location.state.teacherData}
+                />
+              </div>
+              <div className="modal-footer modal-footer-td">
+                <button
+                  type="button"
+                  className="modal-close-button-td"
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

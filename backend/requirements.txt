@@ -6,12 +6,12 @@ python-multipart==0.0.6
 
 
 
-Install these:
+# Install these:
 
-python -m pip install "pymongo[srv]" (run this command)
-(pip install the following):
-pymongo 
-python-dotenv
+# python -m pip install "pymongo[srv]" (run this command)
+# (pip install the following):
+# pymongo 
+# python-dotenv
 
-To run the server, use this command:
-uvicorn server:app --reload
+# To run the server, use this command:
+# uvicorn server:app --reload

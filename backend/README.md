@@ -20,5 +20,5 @@ python -m uvicorn api.server:app --reload
 - `teachers.py` → Hardcoded teacher assignments
 - `config.py` → Settings like classes and period counts
 - `models.py` → Data models (Teacher, Timetable)
-- `api/server.py` → FastAPI app
+- `server.py` → FastAPI app
 -`teachers.py` -> Sample Data

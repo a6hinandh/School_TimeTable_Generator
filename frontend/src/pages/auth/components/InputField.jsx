@@ -1,17 +1,14 @@
-import "../auth.css"
+import React from 'react';
 
-function InputField({ value, placeholder, type, handleFunction }) {
- 
+function InputField({ value, type, placeholder, handleFunction }) {
   return (
-    <div className="w-100">
-      <input
-        className="w-100 p-2 rounded-2 bg-dark border border-2 no-style-focus border-focus"
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={handleFunction}
-      />
-    </div>
+    <input
+      className="auth-input w-100 p-2 rounded"
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={handleFunction}
+    />
   );
 }
 

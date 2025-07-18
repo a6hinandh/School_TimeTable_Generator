@@ -1,6 +1,7 @@
 import { ArrowBigRight, ArrowBigRightIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./GeneratePage.css";
 
 function GeneratePage() {
   const [workingDays, setWorkingDays] = useState();
@@ -59,99 +60,101 @@ function GeneratePage() {
   };
 
   return (
-    <div className="dark-gradient-bg">
-      <div className="container">
-        <div className="pt-3">
-          <h3 className="">Title</h3>
+    <div className="dark-gradient-bg-ge">
+      <div className="container-ge">
+        <div className="input-section-ge">
+          <h3 className="section-title-ge">Title</h3>
           <input
             type="text"
-            className="rounded-2 border border-0 p-2 form-control"
-            placeholder="Title"
+            className="form-input-ge"
+            placeholder="Enter timetable title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-          ></input>
+          />
         </div>
 
-        <div className="pt-3">
-          <h3 className="">No of working days</h3>
+        <div className="input-section-ge">
+          <h3 className="section-title-ge">No of working days</h3>
           <input
             type="number"
-            className="rounded-2 border border-0 p-2 form-control"
-            placeholder="Working days"
+            className="form-input-ge"
+            placeholder="Enter working days (e.g., 5)"
             value={workingDays}
             onChange={(e) => setWorkingDays(e.target.value)}
-          ></input>
+          />
         </div>
 
-        <div className="pt-3">
-          <h3 className="">No of periods per day</h3>
+        <div className="input-section-ge">
+          <h3 className="section-title-ge">No of periods per day</h3>
           <input
             type="number"
-            className="rounded-2 border border-0 p-2 form-control"
-            placeholder="Periods per day"
+            className="form-input-ge"
+            placeholder="Enter periods per day (e.g., 8)"
             value={periods}
             onChange={(e) => setPeriods(e.target.value)}
-          ></input>
+          />
         </div>
 
-        <h3 className="mt-3">Add Classes</h3>
-        <div className="mt-3 align-items-center">
-          {classes.map((clas, index) => {
-            return (
-              <input
-                key={index}
-                type="text"
-                className="rounded-2 border border-0 p-2 me-3 form-control mb-3 "
-                placeholder={`Class ${index + 1}`}
-                value={clas}
-                onChange={(e) => handleChangeClasses(index, e.target.value)}
-              ></input>
-            );
-          })}
+        <div className="section-ge">
+          <h3 className="section-title-ge">Add Classes</h3>
+          <div className="input-group-ge">
+            {classes.map((clas, index) => {
+              return (
+                <input
+                  key={index}
+                  type="text"
+                  className="form-input-ge input-item-ge"
+                  placeholder={`Class ${index + 1} (e.g., Grade 10A)`}
+                  value={clas}
+                  onChange={(e) => handleChangeClasses(index, e.target.value)}
+                />
+              );
+            })}
 
+            <button
+              onClick={handleAddClasses}
+              className="add-button-ge"
+            >
+              <Plus className="icon-ge" />
+              <span>Add one more Class</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="section-ge">
+          <h3 className="section-title-ge">Add subjects</h3>
+          <div className="input-group-ge">
+            {subjects.map((subject, index) => {
+              return (
+                <input
+                  key={index}
+                  type="text"
+                  className="form-input-ge input-item-ge"
+                  placeholder={`Subject ${index + 1} (e.g., Mathematics)`}
+                  value={subject}
+                  onChange={(e) => handleChangeSubject(index, e.target.value)}
+                />
+              );
+            })}
+
+            <button
+              onClick={handleAddSubject}
+              className="add-button-ge"
+            >
+              <Plus className="icon-ge" />
+              <span>Add one more Subject</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="next-button-container-ge">
           <button
-            onClick={handleAddClasses}
-            className="d-flex border border-0 bg-success p-2 rounded w-100 justify-content-center"
-            style={{ height: "38px", padding: "0 16px" }}
-          >
-            <Plus className="me-1" />
-            <p className="">Add one more Class</p>
-          </button>
-        </div>
-
-        <h3 className="mt-3">Add subjects</h3>
-        <div className="mt-3 align-items-center">
-          {subjects.map((subject, index) => {
-            return (
-              <input
-                key={index}
-                type="text"
-                className="rounded-2 border border-0 p-2 me-3 form-control mb-3 "
-                placeholder={`Subject ${index + 1}`}
-                value={subject}
-                onChange={(e) => handleChangeSubject(index, e.target.value)}
-              ></input>
-            );
-          })}
-
-          <button
-            onClick={handleAddSubject}
-            className="d-flex border border-0 bg-success p-2 rounded w-100 justify-content-center"
-            style={{ height: "38px", padding: "0 16px" }}
-          >
-            <Plus className="me-1" />
-            <p className="">Add one more Subject</p>
-          </button>
-        </div>
-
-        <div className="flex w-100 text-center align-items-center justify-content-center mt-5">
-          <div
-            className="btn btn-black mb-4 w-20 fs-5 flex align-items-center justify-content-center"
+            className="next-button-ge"
             onClick={handleNext}
           >
-            Add Teachers
-            <ArrowBigRight size={25} />
-          </div>
+            <span>Add Teachers</span>
+            <ArrowBigRight className="arrow-icon-ge" />
+          </button>
         </div>
       </div>
     </div>

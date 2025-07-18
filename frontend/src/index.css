@@ -1,4 +1,4 @@
-body::-webkit-scrollbar {
+/* body::-webkit-scrollbar {
   display: none;
 }
 
@@ -9,5 +9,5 @@ body {
   ); 
   min-height: 100vh;
   color: white;
-}
+} */
 

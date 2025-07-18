@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { fetchWithAuth } from "../../../utils/fetchWithAuth";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
-
+import "./EditTimetable.css";
 const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -53,7 +53,15 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
   }, [items, selectedItem]);
 
   if (!currentClassTimeTable) {
-    return <div className="text-center p-4">No timetable data available</div>;
+    return (
+      <div className="dark-gradient-bg-ett">
+        <div className="container-ett">
+          <div className="no-data-alert-ett">
+            <div className="no-data-message-ett">No timetable data available</div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const handlePeriodSwap = (dayIndex, periodIndex) => {
@@ -74,7 +82,6 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
     setSelectedPeriods(newSelected);
 
     if (newSelected.length === 2) {
-   
       const [first, second] = newSelected;
 
       const newClass = JSON.parse(JSON.stringify(currentClassTimeTable));
@@ -84,12 +91,11 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
       const period2 =
         newClass[selectedItem][second.dayIndex][second.periodIndex];
 
-        
       let teacher1 =
         period1 !== "Free" && period1 !== "" ? period1.split("(")[1].split(")")[0] : null;
       let teacher2 =
         period2 !== "Free" && period2 !== "" ? period2.split("(")[1].split(")")[0] : null;
-        console.log(teacher1,teacher2)
+      console.log(teacher1, teacher2);
 
       if (
         teacher1 &&
@@ -116,7 +122,6 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
           setCurrentTeacherTimeTable(newTeacher);
           setSelectedPeriods([]);
         }, 500);
-        // Swap class periods
       } else {
         setShowNegativeMessage(true);
         setTimeout(() => {
@@ -140,7 +145,6 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
       teacherData: teacherData
     };
     if (id) {
-   
       const token = await getToken();
       const response = await fetchWithAuth(
         token,
@@ -197,46 +201,54 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
 
   const renderTimetable = (data) => {
     if (!data || data.length === 0) {
-      return <div className="text-center p-4">No data available</div>;
+      return (
+        <div className="no-data-alert-ett">
+          <div className="no-data-message-ett">No data available</div>
+        </div>
+      );
     }
 
     return (
-      <div className="table-responsive">
-        <table className="table table-bordered table-striped">
-          <thead className="table-dark">
+      <div className="table-container-ett">
+        <table className="timetable-table-ett">
+          <thead className="table-header-ett">
             <tr>
-              <th>Day/Period</th>
+              <th className="header-cell-ett">Day/Period</th>
               {periods.slice(0, data[0]?.length || 8).map((period, index) => (
-                <th key={index} className="text-center">
+                <th key={index} className="header-cell-ett period-header-ett">
                   {period}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="table-body-ett">
             {data.map((dayData, dayIndex) => (
-              <tr key={dayIndex}>
-                <td className="fw-bold">{days[dayIndex]}</td>
+              <tr key={dayIndex} className="table-row-ett">
+                <td className="day-cell-ett">{days[dayIndex]}</td>
                 {dayData.map((period, periodIndex) => (
                   <td
                     key={periodIndex}
-                    style={{ cursor: "pointer" }}
-                    className={`text-center ${
+                    className={`period-cell-ett ${
                       selectedPeriods.some(
                         (sel) =>
                           sel.dayIndex === dayIndex &&
                           sel.periodIndex === periodIndex
                       )
-                        ? "bg-success"
+                        ? "selected-ett"
                         : ""
                     }`}
                     onClick={() => handlePeriodSwap(dayIndex, periodIndex)}
                   >
                     {period === "Free" || period === "" ? (
-                      <span className="text-muted">Free</span>
+                      <span className="free-period-ett">Free</span>
                     ) : (
-                      <span className="badge bg-primary">{period}</span>
+                      <span className="subject-badge-ett">{period}</span>
                     )}
+                    {selectedPeriods.some(
+                      (sel) =>
+                        sel.dayIndex === dayIndex &&
+                        sel.periodIndex === periodIndex
+                    ) && <div className="selection-indicator-ett">Selected</div>}
                   </td>
                 ))}
               </tr>
@@ -248,68 +260,83 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
   };
 
   return (
-    <div className="container-fluid p-4 dark-gradient-bg">
-      <div className="row mb-4">
-        <div className="col-md-6 d-flex align-items-center gap-4">
-          <div className="btn-group" role="group">
-            <button
-              type="button"
-              className={`btn btn-success`}
-              onClick={handleSave}
-              data-bs-dismiss="modal"
-            >
-              Save Changes
-            </button>
-            <button
-              type="button"
-              className={`btn btn-warning`}
-              onClick={handleReset}
-            >
-              Reset
-            </button>
+    <div className="dark-gradient-bg-ett">
+      <div className="container-ett">
+        {/* Instruction Message */}
+        <div className="instruction-message-ett">
+          <div className="instruction-title-ett">How to Edit Timetable</div>
+          <div className="instruction-text-ett">
+            Select two periods to swap them. The system will automatically check if teachers are available for the swap.
           </div>
-          <div className="">
-            <p className="">
+        </div>
+
+        {/* Controls Section */}
+        <div className="controls-section-ett">
+          <div className="action-controls-ett">
+            <div className="button-group-ett">
+              <button
+                type="button"
+                className="action-button-ett save-button-ett"
+                onClick={handleSave}
+              >
+                <span>💾</span>
+                Save Changes
+              </button>
+              <button
+                type="button"
+                className="action-button-ett reset-button-ett"
+                onClick={handleReset}
+              >
+                <span>🔄</span>
+                Reset
+              </button>
+            </div>
+            <div className={`status-message-ett ${
+              showPositiveMessage ? "status-positive-ett" : 
+              showNegativeMessage ? "status-negative-ett" : ""
+            }`}>
               {showPositiveMessage
-                ? "Updating..."
+                ? "✅ Updating..."
                 : showNegativeMessage
-                ? "Cannot swap"
-                : null}
-            </p>
+                ? "❌ Cannot swap - Teacher conflict"
+                : "Ready to edit"}
+            </div>
+          </div>
+          <div className="selector-controls-ett">
+            <select
+              className="item-selector-ett"
+              value={selectedItem}
+              onChange={(e) => setSelectedItem(e.target.value)}
+            >
+              <option value="">Select Class</option>
+              {items.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-        <div className="col-md-6">
-          <select
-            className="form-select"
-            value={selectedItem}
-            onChange={(e) => setSelectedItem(e.target.value)}
-          >
-            <option value="">Select Class</option>
-            {items.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
+
+        {/* Timetable Card */}
+        {selectedItem && (
+          <div className="timetable-card-ett">
+            <div className="card-header-ett">
+              <h4 className="card-title-ett">Class: {selectedItem}</h4>
+            </div>
+            <div className="card-body-ett">
+              {renderTimetable(currentData[selectedItem])}
+            </div>
+          </div>
+        )}
+
+        {/* No Selection Alert */}
+        {!selectedItem && (
+          <div className="info-alert-ett">
+            Please select a class to view and edit the timetable
+          </div>
+        )}
       </div>
-
-      {selectedItem && (
-        <div className="card">
-          <div className="card-header">
-            <h4 className="mb-0">Class : {selectedItem}</h4>
-          </div>
-          <div className="card-body">
-            {renderTimetable(currentData[selectedItem])}
-          </div>
-        </div>
-      )}
-
-      {!selectedItem && (
-        <div className="alert alert-info text-center">
-          Please select a class to view the timetable
-        </div>
-      )}
     </div>
   );
 };

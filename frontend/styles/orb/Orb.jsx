@@ -284,7 +284,7 @@ export default function Orb({
 //   return <div ref={ctnDom} className="orb-container" />;
 return (
   <div ref={ctnDom} className="orb-container position-relative w-100 h-100">
-    <div className="orb-content position-absolute top-50 start-50 translate-middle text-white text-center">
+    <div className="position-absolute top-50 start-50 translate-middle text-white text-center">
       {children}
     </div>
   </div>

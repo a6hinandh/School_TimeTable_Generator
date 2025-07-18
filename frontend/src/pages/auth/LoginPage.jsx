@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { useSignIn } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
+import "../../../styles/theme.css"; // Import the theme CSS
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -52,8 +53,8 @@ function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="text-success d-flex flex-column align-items-center justify-content-center min-vh-100 w-100 fs-3">
-        <Loader className="spin" size={40} />
+      <div className="loading-container d-flex flex-column align-items-center justify-content-center min-vh-100 w-100 fs-3">
+        <Loader className="loading-spinner" size={40} />
         <p>Logging in</p>
       </div>
     );
@@ -65,7 +66,7 @@ function LoginPage() {
         dotSize={10}
         gap={15}
         baseColor="#000000"
-        activeColor="#277D08"
+        activeColor="#3282b8"
         proximity={140}
         shockRadius={250}
         shockStrength={5}
@@ -73,8 +74,8 @@ function LoginPage() {
         returnDuration={1.5}
       >
         <div className="d-flex vh-100 justify-content-center px-3 align-items-center">
-          <div className="bg-dark border border-white border-1 rounded-3 p-4" style={{minWidth: "280px", width: "100%", maxWidth: "400px" }} >
-            <h3 className="text-center pt-3 pb-2">Log In</h3>
+          <div className="auth-container rounded-3 p-4" style={{minWidth: "280px", width: "100%", maxWidth: "400px" }} >
+            <h3 className="text-center pt-3 pb-2 auth-title">Log In</h3>
             <div className="d-flex flex-column p-2 w-100 gap-3 justify-content-center align-items-center ">
               <InputField
                 value={email}
@@ -89,20 +90,20 @@ function LoginPage() {
                 handleFunction={(e) => setPassword(e.target.value)}
               />
               <button
-                className="d-flex border border-0 bg-success p-2 rounded w-100 justify-content-center"
+                className="auth-button d-flex justify-content-center align-items-center p-2 rounded w-100"
                 style={{ height: "38px", padding: "0 16px" }}
                 onClick={handleSignInWithEmail}
               >
-                <p className="">Login</p>
+                <p className="mb-0">Login</p>
               </button>
               <p className="mb-0">or</p>
-              <div className="rounded-5 p-1 px-3 justify-content-center align-items-center d-flex gap-2" style={{backgroundColor:"black",cursor:"pointer"}} onClick={handleSignInWithGoogle}>
-                <p className="pt-2">Continue with Google</p>
+              <div className="google-auth-button rounded-5 p-2 px-3 justify-content-center align-items-center d-flex gap-2" style={{cursor:"pointer"}} onClick={handleSignInWithGoogle}>
+                <p className="pt-2 mb-0">Continue with Google</p>
                 <img src="./google.png" className="rounded-pill" style={{width: "30px",height:"30px"}}/>
               </div>
               <div className="d-flex gap-2">
-                <p>Don't have an account ?</p>
-                <p className="" onClick={()=>navigate("/sign-up")} style={{cursor:"pointer"}}>Sign up</p>
+                <p className="mb-0">Don't have an account ?</p>
+                <p className="auth-link mb-0" onClick={()=>navigate("/sign-up")}>Sign up</p>
               </div>
             </div>
           </div>

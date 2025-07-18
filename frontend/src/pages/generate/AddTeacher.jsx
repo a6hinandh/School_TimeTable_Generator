@@ -8,7 +8,6 @@ import EditTimetable from "./components/EditTimetable";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import toast from "react-hot-toast";
 
-
 function AddTeacher() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -303,64 +302,66 @@ function AddTeacher() {
   // If timetable is generated, show the timetable display
   if (timetableData) {
     return (
-      <div className="dark-gradient-bg min-vh-100">
-        <div className="container-fluid">
-          <div className="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-            <h3 className="mb-0 text-dark">Generated Timetable</h3>
-            <div className="d-flex gap-2">
+      <div className="dark-gradient-bg-ge">
+        <div className="container-ge">
+          <div className="timetable-header">
+            <h2 className="section-title-ge">Generated Timetable</h2>
+            <div className="action-buttons-container">
               <button
-                className="btn btn-warning btn-lg"
+                className="action-button save-button"
                 onClick={handleSavetoDb}
                 title="Save"
               >
-                <X className="me-2" size={16} />
+                <X className="icon-ge" />
                 Save
               </button>
               
-                  <button
-                    className="btn btn-warning btn-lg"
-                    onClick={handleBackToTeachers}
-                    title="Go back to edit teachers"
-                  >
-                    <X className="me-2" size={16} />
-                    Edit Teachers
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#exampleModal"
-                  >
-                    Edit timetable
-                  </button>
-                
+              <button
+                className="action-button edit-button"
+                onClick={handleBackToTeachers}
+                title="Go back to edit teachers"
+              >
+                <X className="icon-ge" />
+                Edit Teachers
+              </button>
+              
+              <button
+                type="button"
+                className="action-button primary-button"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+              >
+                Edit timetable
+              </button>
 
               <button
-                className="btn btn-success btn-lg"
+                className="action-button regenerate-button"
                 onClick={handleRegenerateWithCurrentData}
                 disabled={loading}
                 title="Regenerate timetable with current data"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="me-2 animate-spin" size={16} />
+                    <Loader2 className="icon-ge animate-spin" />
                     Regenerating...
                   </>
                 ) : (
                   <>
-                    <Plus className="me-2" size={16} />
+                    <Plus className="icon-ge" />
                     Regenerate
                   </>
                 )}
               </button>
             </div>
           </div>
+          
           <TimetableDisplay
             classTimetable={timetableData.class_timetable}
             teacherTimetable={timetableData.teacher_timetable}
-            showEditOptions= {savedTeachersData}
+            showEditOptions={savedTeachersData}
           />
 
+          {/* Modal remains unchanged */}
           <div
             className="modal fade"
             id="exampleModal"
@@ -408,259 +409,243 @@ function AddTeacher() {
   }
 
   return (
-    <div className="dark-gradient-bg">
-      <div className="d-flex justify-content-between align-items-center">
-        <h3 className="mt-3">Add Teachers</h3>
-        {savedTeachersData && (
-          <div
-            className="alert alert-info mt-3 mb-0"
-            style={{ fontSize: "0.9rem" }}
-          >
-            <strong>Note:</strong> You can edit the data below and regenerate
-            the timetable
+    <div className="dark-gradient-bg-ge">
+      <div className="container-at">
+        <div className="header-section">
+          <h2 className="section-title-ge">Add Teachers</h2>
+          {savedTeachersData && (
+            <div className="info-alert">
+              <strong>Note:</strong> You can edit the data below and regenerate
+              the timetable
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="error-alert">
+            {error}
           </div>
         )}
-      </div>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
-
-      <div className="mb-5">
-        {teachers.map((teacher, index) => {
-          return (
-            <div
-              className="d-flex flex-column mt-2 border border-4 rounded-3 p-4 position-relative"
-              key={index}
-            >
-              {/* Delete Teacher Button */}
-              {teachers.length > 1 && (
-                <button
-                  onClick={() => handleDeleteTeacher(index)}
-                  className="btn btn-danger position-absolute"
-                  style={{
-                    top: "10px",
-                    right: "10px",
-                    padding: "4px 8px",
-                    fontSize: "12px",
-                  }}
-                  title="Delete Teacher"
-                >
-                  <X size={16} />
-                </button>
-              )}
-
-              <div className="d-flex">
-                <div className="d-flex flex-column gap-2 mx-2 w-100">
-                  <label>Name</label>
-                  <input
-                    type="text"
-                    className="rounded-2 border border-0 p-2 form-control mb-3 "
-                    placeholder={`Teacher ${index + 1}`}
-                    value={teacher.name}
-                    onChange={(e) =>
-                      handleChangeTeacherName(index, e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="d-flex flex-column gap-2 mx-2 w-100">
-                  <label>Subjects</label>
-                  <DropdownChecklist
-                    options={subjects}
-                    selected={teacher.subjects}
-                    onChange={(selected) =>
-                      handleChangeSelectedSubjects(index, selected)
-                    }
-                  />
-                </div>
-
-                <div className="d-flex flex-column gap-2 mx-2 w-100">
-                  <label>Main Subject</label>
-                  <select
-                    className="form-select border border-0 me-3"
-                    style={{ height: "40px" }}
-                    value={teacher.mainSubject}
-                    onChange={(e) =>
-                      handleChangeMainSubject(index, e.target.value)
-                    }
+        <div className="teachers-container">
+          {teachers.map((teacher, index) => {
+            return (
+              <div className="teacher-card" key={index}>
+                {/* Delete Teacher Button */}
+                {teachers.length > 1 && (
+                  <button
+                    onClick={() => handleDeleteTeacher(index)}
+                    className="delete-teacher-btn"
+                    title="Delete Teacher"
                   >
-                    <option>Select Main Subject</option>
-                    {teacher.subjects.map((subject, ind) =>
-                      subject !== "" ? (
-                        <option key={ind} value={subject}>
-                          {subject}
-                        </option>
-                      ) : null
-                    )}
-                  </select>
-                </div>
+                    <X className="icon-ge" />
+                  </button>
+                )}
 
-                <div className="d-flex flex-column gap-2 mx-2 w-100">
-                  <label>Lab Period</label>
-                  <select
-                    className="form-select border border-0 me-3"
-                    style={{ height: "40px" }}
-                    value={teacher.labPeriod}
-                    onChange={(e) =>
-                      handleChangeLabPeriod(index, e.target.value)
-                    }
-                  >
-                    <option>Select Lab Period</option>
-                    {teacher.subjects.map((subject, ind) =>
-                      subject !== "" ? (
-                        <option key={ind} value={subject}>
-                          {subject}
-                        </option>
-                      ) : null
-                    )}
-                  </select>
-                </div>
-              </div>
+                <div className="teacher-info-row">
+                  <div className="input-group-ge">
+                    <label className="input-label">Name</label>
+                    <input
+                      type="text"
+                      className="form-input-ge"
+                      placeholder={`Teacher ${index + 1}`}
+                      value={teacher.name}
+                      onChange={(e) =>
+                        handleChangeTeacherName(index, e.target.value)
+                      }
+                    />
+                  </div>
 
-              <div className="d-flex gap-2 p-2 align-items-center">
-                <label className="fs-5">If class teacher, select class</label>
-                <select
-                  className="form-select border border-0 me-3 w-25"
-                  style={{ height: "40px" }}
-                  value={teacher.assigned_class}
-                  onChange={(e) => handleChangeClass(index, e.target.value)}
-                >
-                  <option>Select Class</option>
-                  {classes.map((clas, ind) =>
-                    clas !== "" ? (
-                      <option key={ind} value={clas}>
-                        {clas}
-                      </option>
-                    ) : null
-                  )}
-                </select>
-              </div>
+                  <div className="input-group-ge">
+                    <label className="input-label">Subjects</label>
+                    <DropdownChecklist
+                      options={subjects}
+                      selected={teacher.subjects}
+                      onChange={(selected) =>
+                        handleChangeSelectedSubjects(index, selected)
+                      }
+                    />
+                  </div>
 
-              <h4 className="p-2">Assign Periods</h4>
-              <div className="d-flex flex-column w-100">
-                {teacher.periods.map((period, ind) => {
-                  return (
-                    <div className="d-flex w-100 align-items-end" key={ind}>
-                      <div className="d-flex flex-column gap-2 mx-2 w-100">
-                        <label>Class</label>
-                        <select
-                          className="form-select border border-0 me-3"
-                          style={{ height: "40px" }}
-                          value={period.class_name}
-                          onChange={(e) =>
-                            handleChangePeriodClass(index, ind, e.target.value)
-                          }
-                        >
-                          <option>Select Class</option>
-                          {classes.map((clas, i) =>
-                            clas !== "" ? (
-                              <option key={i} value={clas}>
-                                {clas}
-                              </option>
-                            ) : null
-                          )}
-                        </select>
-                      </div>
-
-                      <div className="d-flex flex-column gap-2 mx-2 w-100">
-                        <label>Subject</label>
-                        <select
-                          className="form-select border border-0 me-3"
-                          style={{ height: "40px" }}
-                          value={period.subject}
-                          onChange={(e) =>
-                            handleChangePeriodSubject(
-                              index,
-                              ind,
-                              e.target.value
-                            )
-                          }
-                        >
-                          <option>Select Subject</option>
-                          {teacher.subjects.map((sub, subInd) =>
-                            sub !== "" ? (
-                              <option key={subInd} value={sub}>
-                                {sub}
-                              </option>
-                            ) : null
-                          )}
-                        </select>
-                      </div>
-
-                      <div className="d-flex flex-column gap-2 mx-2 w-100">
-                        <label>No of Periods</label>
-                        <input
-                          type="number"
-                          className="rounded-2 border border-0 p-2 me-3 form-control mb-3"
-                          placeholder="No of periods"
-                          value={period.noOfPeriods}
-                          onChange={(e) =>
-                            handleChangePeriodNumber(index, ind, e.target.value)
-                          }
-                        />
-                      </div>
-
-                      {/* Delete Period Button */}
-                      {teacher.periods.length > 1 && (
-                        <div className="mx-2 mb-3">
-                          <button
-                            onClick={() => handleDeletePeriod(index, ind)}
-                            className="btn btn-danger"
-                            style={{ height: "40px", padding: "0 12px" }}
-                            title="Delete Period"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
+                  <div className="input-group-ge">
+                    <label className="input-label">Main Subject</label>
+                    <select
+                      className="form-select-ge"
+                      value={teacher.mainSubject}
+                      onChange={(e) =>
+                        handleChangeMainSubject(index, e.target.value)
+                      }
+                    >
+                      <option>Select Main Subject</option>
+                      {teacher.subjects.map((subject, ind) =>
+                        subject !== "" ? (
+                          <option key={ind} value={subject}>
+                            {subject}
+                          </option>
+                        ) : null
                       )}
-                    </div>
-                  );
-                })}
+                    </select>
+                  </div>
+
+                  <div className="input-group-ge">
+                    <label className="input-label">Lab Period</label>
+                    <select
+                      className="form-select-ge"
+                      value={teacher.labPeriod}
+                      onChange={(e) =>
+                        handleChangeLabPeriod(index, e.target.value)
+                      }
+                    >
+                      <option>Select Lab Period</option>
+                      {teacher.subjects.map((subject, ind) =>
+                        subject !== "" ? (
+                          <option key={ind} value={subject}>
+                            {subject}
+                          </option>
+                        ) : null
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="class-teacher-section">
+                  <label className="class-teacher-label">If class teacher, select class</label>
+                  <select
+                    className="form-select-ge class-select"
+                    value={teacher.assigned_class}
+                    onChange={(e) => handleChangeClass(index, e.target.value)}
+                  >
+                    <option>Select Class</option>
+                    {classes.map((clas, ind) =>
+                      clas !== "" ? (
+                        <option key={ind} value={clas}>
+                          {clas}
+                        </option>
+                      ) : null
+                    )}
+                  </select>
+                </div>
+
+                <div className="periods-section">
+                  <h3 className="periods-title">Assign Periods</h3>
+                  <div className="periods-container">
+                    {teacher.periods.map((period, ind) => {
+                      return (
+                        <div className="period-row" key={ind}>
+                          <div className="input-group-ge">
+                            <label className="input-label">Class</label>
+                            <select
+                              className="form-select-ge"
+                              value={period.class_name}
+                              onChange={(e) =>
+                                handleChangePeriodClass(index, ind, e.target.value)
+                              }
+                            >
+                              <option>Select Class</option>
+                              {classes.map((clas, i) =>
+                                clas !== "" ? (
+                                  <option key={i} value={clas}>
+                                    {clas}
+                                  </option>
+                                ) : null
+                              )}
+                            </select>
+                          </div>
+
+                          <div className="input-group-ge">
+                            <label className="input-label">Subject</label>
+                            <select
+                              className="form-select-ge"
+                              value={period.subject}
+                              onChange={(e) =>
+                                handleChangePeriodSubject(
+                                  index,
+                                  ind,
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option>Select Subject</option>
+                              {teacher.subjects.map((sub, subInd) =>
+                                sub !== "" ? (
+                                  <option key={subInd} value={sub}>
+                                    {sub}
+                                  </option>
+                                ) : null
+                              )}
+                            </select>
+                          </div>
+
+                          <div className="input-group-ge">
+                            <label className="input-label">No of Periods</label>
+                            <input
+                              type="number"
+                              className="form-input-ge"
+                              placeholder="No of periods"
+                              value={period.noOfPeriods}
+                              onChange={(e) =>
+                                handleChangePeriodNumber(index, ind, e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* Delete Period Button */}
+                          {teacher.periods.length > 1 && (
+                            <div className="delete-period-container">
+                              <button
+                                onClick={() => handleDeletePeriod(index, ind)}
+                                className="delete-period-btn"
+                                title="Delete Period"
+                              >
+                                <X className="icon-ge" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handleAddPeriod(index)}
+                    className="add-button-ge"
+                  >
+                    <Plus className="icon-ge" />
+                    Add another period
+                  </button>
+                </div>
               </div>
+            );
+          })}
 
-              <button
-                onClick={() => handleAddPeriod(index)}
-                className="d-flex border border-0 bg-success p-2 rounded w-100 justify-content-center mt-2"
-                style={{ height: "38px", padding: "0 16px" }}
-              >
-                <Plus className="me-1" />
-                <p className="">Add another period</p>
-              </button>
-            </div>
-          );
-        })}
+          <div className="add-teacher-container">
+            <button
+              onClick={handleAddTeacher}
+              className="add-button-ge add-teacher-btn"
+            >
+              <Plus className="icon-ge" />
+              Add another Teacher
+            </button>
+          </div>
 
-        <div className="text-center d-flex align-items-center justify-content-center">
-          <button
-            onClick={handleAddTeacher}
-            className="d-flex border border-0 bg-success p-2 rounded w-75 justify-content-center mt-5"
-            style={{ height: "38px", padding: "0 16px" }}
-          >
-            <Plus className="me-1" />
-            <p className="">Add another Teacher</p>
-          </button>
-        </div>
-
-        <div className="flex w-100 text-center align-items-center justify-content-center mt-5">
-          <button
-            className="btn btn-black mb-4 w-20 fs-5 flex align-items-center justify-content-center"
-            onClick={generateTimetable}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="me-2 animate-spin" size={20} />
-                Generating...
-              </>
-            ) : savedTeachersData ? (
-              "Regenerate Timetable"
-            ) : (
-              "Generate Timetable"
-            )}
-          </button>
+          <div className="next-button-container-ge">
+            <button
+              className="next-button-ge"
+              onClick={generateTimetable}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="arrow-icon-ge animate-spin" />
+                  Generating...
+                </>
+              ) : savedTeachersData ? (
+                "Regenerate Timetable"
+              ) : (
+                "Generate Timetable"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
