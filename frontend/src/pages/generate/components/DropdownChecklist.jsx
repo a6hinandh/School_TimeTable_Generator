@@ -28,12 +28,14 @@ const DropdownChecklist = ({ options, selected, onChange }) => {
   const filteredOptions = options.filter(option => option.trim() !== '');
 
   return (
-    <div className="dropdown position-relative" ref={dropdownRef}>
-      <button
-        type="button"
-        className="btn btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+    <div className="dropdown form-input-ge position-relative" ref={dropdownRef} style={{cursor:"pointer"}}>
+      <div
+        className="d-flex justify-content-between"
         onClick={() => setIsOpen(!isOpen)}
-        style={{ height: '40px' }}
+        // type="button"
+        // className="btn btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+        // onClick={() => setIsOpen(!isOpen)}
+        // style={{ height: '40px' }}
       >
         <span>
           {selected.length > 0 
@@ -42,17 +44,18 @@ const DropdownChecklist = ({ options, selected, onChange }) => {
           }
         </span>
         <ChevronDown size={16} />
-      </button>
+      </div>
       
       {isOpen && (
-        <div className="dropdown-menu show w-100 p-0" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+        <div className="dropdown-menu show w-100 p-0 position-absolute" style={{ maxHeight: '200px', overflowY: 'auto',bottom:-30,right:0 }}>
           {filteredOptions.map((option, index) => (
             <div
               key={index}
-              className={`dropdown-item d-flex align-items-center ${
-                selected.includes(option) ? 'bg-light' : ''
-              }`}
-              onClick={() => handleToggle(option)}
+              className={`dropdown-item d-flex align-items-center`}
+              onClick={() => {
+                handleToggle(option)
+                
+              }}
               style={{ cursor: 'pointer' }}
             >
               <div className="me-2" style={{ width: '16px', height: '16px' }}>

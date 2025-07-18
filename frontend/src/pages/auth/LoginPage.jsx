@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { useSignIn } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
+import { useEffect } from "react";
 import "../../../styles/theme.css"; // Import the theme CSS
 
 function LoginPage() {
@@ -13,6 +14,10 @@ function LoginPage() {
   const navigate = useNavigate()
   const {signIn,setActive} = useSignIn()
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
 
   const handleSignInWithEmail = async ()=>{
     try {

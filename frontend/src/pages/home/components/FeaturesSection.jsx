@@ -100,7 +100,7 @@ function FeaturesSection() {
                   <div className="feature-details">
                     <h4 className="feature-back-title">{feature.title}</h4>
                     <p className="feature-back-description">{feature.backDescription}</p>
-                    <div className="feature-shine"></div>
+                    {/* <div className="feature-shine"></div> */}
                   </div>
                 </div>
               </div>

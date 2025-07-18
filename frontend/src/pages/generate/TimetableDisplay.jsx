@@ -11,7 +11,7 @@ import "./TimetableDisplay.css";
 const TimetableDisplay = ({
   classTimetable: initialClass,
   teacherTimetable: initialTeacher,
-  showEditOptions
+  showEditOptions,
 }) => {
   const location = useLocation();
   const [viewMode, setViewMode] = useState("class");
@@ -20,16 +20,22 @@ const TimetableDisplay = ({
   const [teacherTimetable, setTeacherTimetable] = useState(
     initialTeacher || []
   );
-  const [id, setId] = useState();
+  
   const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     if (location.state && (!initialClass || !initialTeacher)) {
       setClassTimetable(location.state.classTimetable);
       setTeacherTimetable(location.state.teacherTimetable);
-      setId(location.state.timetableId);
+      
     }
   }, [location]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const periods = [
@@ -138,161 +144,211 @@ const TimetableDisplay = ({
   };
 
   return (
-    <div className="dark-gradient-bg-td">
-      <div className="container-td">
-        <div className="controls-section-td">
-          <div className="view-mode-controls-td">
-            <div className="button-group-td">
-              <button
-                type="button"
-                className={`mode-button-td ${
-                  viewMode === "class" ? "active-mode-td" : ""
-                }`}
-                onClick={() => {
-                  setViewMode("class");
-                  setSelectedItem(Object.keys(classTimetable)[0] || "");
-                }}
-              >
-                Class Timetables
-              </button>
-              <button
-                type="button"
-                className={`mode-button-td ${
-                  viewMode === "teacher" ? "active-mode-td" : ""
-                }`}
-                onClick={() => {
-                  setViewMode("teacher");
-                  setSelectedItem(Object.keys(teacherTimetable)[0] || "");
-                }}
-              >
-                Teacher Timetables
-              </button>
-            </div>
-          </div>
-          <div className="selector-controls-td">
-            <select
-              className="item-selector-td"
-              value={selectedItem}
-              onChange={(e) => setSelectedItem(e.target.value)}
-            >
-              <option value="">
-                Select {viewMode === "class" ? "Class" : "Teacher"}
-              </option>
-              {items.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {selectedItem && (
-          <div className="timetable-card-td">
-            <div className="card-header-td">
-              <h4 className="card-title-td">
-                {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
-              </h4>
-              <div className="export-buttons-td">
-                <button className="export-button-td pdf-button-td" onClick={exportAsPDF}>
-                  <span className="button-icon-td">📄</span>
-                  Export as PDF
-                </button>
-                <button className="export-button-td excel-button-td" onClick={exportAsExcel}>
-                  <span className="button-icon-td">📊</span>
-                  Export as Excel
-                </button>
-              </div>
-            </div>
-            <div className="card-body-td" id="timetable-container">
-              {renderTimetable(currentData[selectedItem])}
-            </div>
-          </div>
-        )}
-
-        {!selectedItem && (
-          <div className="info-alert-td">
-            Please select a {viewMode === "class" ? "class" : "teacher"} to view
-            the timetable
-          </div>
-        )}
-
+    <div className={`${!showEditOptions ? "dark-gradient-bg-td" : ""}`}>
+      <div
+        className={`${!showEditOptions ? "container" : ""}`}
+        style={{ padding: `${showEditOptions ? "" : "5rem"}`, paddingTop: 0 }}
+      >
         {location.state?.timetableId && !showEditOptions && (
-          <div className="action-buttons-section-td">
-            <button
-              type="button"
-              className="action-button-td edit-timetable-button-td"
-              data-bs-toggle="modal"
-              data-bs-target="#exampleModal"
-            >
-              <span className="button-icon-td">✏️</span>
-              Edit timetable
-            </button>
+          <div className="timetable-header">
+            <h2 className="section-title-ge">{location.state.title}</h2>
+            <div className="action-buttons-container">
+              <button
+                type="button"
+                className="action-button-td edit-timetable-button-td"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal"
+              >
+                <span className="button-icon-td">✏️</span>
+                Edit timetable
+              </button>
 
-            <button
-              type="button"
-              className="action-button-td edit-teachers-button-td"
-              onClick={() =>
-                navigate("/generate/add-teachers", {
-                  state: {
-                    teacherData: location.state.teacherData,
-                    classes: location.state.classes,
-                    subjects: location.state.subjects,
-                    workingDays: location.state.workingDays,
-                    periods: location.state.periods,
-                    title: location.state.title,
-                    timetableId: location.state.timetableId,
-                  },
-                })
-              }
-            >
-              <span className="button-icon-td">👥</span>
-              Edit teachers
-            </button>
+              <button
+                type="button"
+                className="action-button-td edit-teachers-button-td"
+                onClick={() =>
+                  navigate("/generate/add-teachers", {
+                    state: {
+                      teacherData: location.state.teacherData,
+                      classes: location.state.classes,
+                      subjects: location.state.subjects,
+                      workingDays: location.state.workingDays,
+                      periods: location.state.periods,
+                      title: location.state.title,
+                      timetableId: location.state.timetableId,
+                    },
+                  })
+                }
+              >
+                <span className="button-icon-td">👥</span>
+                Edit teachers
+              </button>
+            </div>
           </div>
         )}
-
-        <div
-          className="modal fade"
-          id="exampleModal"
-          tabIndex="-1"
-          aria-labelledby="exampleModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-xl">
-            <div className="modal-content modal-content-td">
-              <div className="modal-header modal-header-td">
-                <h1 className="modal-title-td" id="exampleModalLabel">
-                  Edit TimeTable
-                </h1>
+        <div className="container-td">
+          <div className="controls-section-td">
+            <div className="view-mode-controls-td">
+              <div className="button-group-td">
                 <button
                   type="button"
-                  className="modal-close-td"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
+                  className={`mode-button-td ${
+                    viewMode === "class" ? "active-mode-td" : ""
+                  }`}
+                  onClick={() => {
+                    setViewMode("class");
+                    setSelectedItem(Object.keys(classTimetable)[0] || "");
+                  }}
                 >
-                  ×
+                  Class Timetables
                 </button>
-              </div>
-              <div className="modal-body modal-body-td">
-                <EditTimetable
-                  classTimetable={classTimetable}
-                  teacherTimetable={teacherTimetable}
-                  id={id}
-                  teacherData={location.state.teacherData}
-                />
-              </div>
-              <div className="modal-footer modal-footer-td">
                 <button
                   type="button"
-                  className="modal-close-button-td"
-                  data-bs-dismiss="modal"
+                  className={`mode-button-td ${
+                    viewMode === "teacher" ? "active-mode-td" : ""
+                  }`}
+                  onClick={() => {
+                    setViewMode("teacher");
+                    setSelectedItem(Object.keys(teacherTimetable)[0] || "");
+                  }}
                 >
-                  Close
+                  Teacher Timetables
                 </button>
               </div>
             </div>
+            <div
+              className="selector-controls-td"
+              style={{ paddingLeft: "10px" }}
+            >
+              <select
+                className="item-selector-td"
+                value={selectedItem}
+                onChange={(e) => setSelectedItem(e.target.value)}
+              >
+                <option value="">
+                  Select {viewMode === "class" ? "Class" : "Teacher"}
+                </option>
+                {items.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+
+          {selectedItem && (
+            <div className="timetable-card-td">
+              <div
+                className="card-header-td"
+                style={{ paddingRight: "1rem", paddingLeft: "1rem" }}
+              >
+                <h4 className="card-title-td">
+                  {viewMode === "class" ? "Class" : "Teacher"}: {selectedItem}
+                </h4>
+                <div className="export-buttons-td">
+                  <button
+                    className="export-button-td pdf-button-td"
+                    onClick={exportAsPDF}
+                  >
+                    <span className="button-icon-td">📄</span>
+                    Export as PDF
+                  </button>
+                  <button
+                    className="export-button-td excel-button-td"
+                    onClick={exportAsExcel}
+                  >
+                    <span className="button-icon-td">📊</span>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
+              <div className="card-body-td" id="timetable-container">
+                {renderTimetable(currentData[selectedItem])}
+              </div>
+            </div>
+          )}
+
+          {!selectedItem && (
+            <div className="info-alert-td">
+              Please select a {viewMode === "class" ? "class" : "teacher"} to
+              view the timetable
+            </div>
+          )}
+
+         
+
+          {!showEditOptions && (
+ 
+            // <div
+            //   className="modal fade"
+            //   id="exampleModal"
+            //   tabIndex="-1"
+            //   aria-labelledby="exampleModalLabel"
+            //   aria-hidden="true"
+            // >
+            //   <div className="modal-dialog modal-xl">
+            //     <div className="modal-content modal-content-td">
+            //       <div className="modal-header modal-header-td d-flex justify-content-between">
+            //         <h1 className="modal-title-td" id="exampleModalLabel">
+            //           Edit TimeTable
+            //         </h1>
+            //         <button
+            //           type="button"
+            //           className="modal-close-td"
+            //           data-bs-dismiss="modal"
+            //           aria-label="Close"
+            //         >
+            //           ×
+            //         </button>
+            //       </div>
+            //       <div className="modal-body modal-body-td">
+            //         <EditTimetable
+            //           classTimetable={classTimetable}
+            //           teacherTimetable={teacherTimetable}
+            //           id={location.state.timetableId}
+            //           teacherData={location.state.teacherData}
+            //         />
+            //       </div>
+            //     </div>
+            //   </div>
+            
+            <div
+            className="modal fade"
+            id="exampleModal"
+            tabIndex="-1"
+            aria-labelledby="exampleModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog modal-xl">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                    Edit TimeTable
+                  </h1>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <EditTimetable
+                    classTimetable={classTimetable}
+                    teacherTimetable={teacherTimetable}
+                    id={location.state.timetableId}
+                    teacherData = {location.state.teacherData}
+                  />
+                </div>
+                
+              </div>
+            </div>
+          </div>
+         
+          )}
+
+         
         </div>
       </div>
     </div>

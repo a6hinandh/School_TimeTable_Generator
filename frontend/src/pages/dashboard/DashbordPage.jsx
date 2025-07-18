@@ -16,6 +16,10 @@ function DashbordPage() {
   const { getToken } = useAuth();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const updateName = async () => {
       if (isSignedIn && user && state && typeof state.name === "string" && state.name.trim() !== "") {
         try {
@@ -79,7 +83,7 @@ function DashbordPage() {
         <div className="spacer-topd" />
         <div
           className="create-timetable-cardd"
-          onClick={() => navigate("/generate")}
+          
         >
           <div className="create-contentd">
             <div className="orb-containerd">
@@ -88,8 +92,9 @@ function DashbordPage() {
                 rotateOnHover={true}
                 hue={0}
                 forceHoverState={false}
+                
               >
-                <p className="create-textd">Create new timetable</p>
+                <p onClick={() => navigate("/generate")} style={{cursor:"pointer"}} className="create-textd">Create new timetable</p>
               </Orb>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { ArrowBigRight, ArrowBigRightIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import "./GeneratePage.css";
 
 function GeneratePage() {
@@ -10,6 +11,10 @@ function GeneratePage() {
   const [subjects, setSubjects] = useState([""]);
   const [classes, setClasses] = useState([""]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
 
   const handleAddSubject = () => {
     setSubjects([...subjects, ""]);

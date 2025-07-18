@@ -4,7 +4,7 @@ import { CalendarDays, BookOpen, Calculator, Microscope, Palette, Music, Globe, 
 import FeaturesSection from "./components/FeaturesSection";
 import { useNavigate } from 'react-router-dom';
 import { useUser } from "@clerk/clerk-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function FloatingInstruments() {
   const instruments = [
@@ -47,6 +47,10 @@ function HomePage() {
   const [activeModal, setActiveModal] = useState(null);
 
   const closeModal = () => setActiveModal(null);
+
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
 
   return (
     <div className="dark-gradient-bg">
@@ -132,7 +136,7 @@ function HomePage() {
         {/* MODALS */}
         {activeModal && (
           <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-content" style={{width:"45%"}} onClick={e => e.stopPropagation()}>
               <button className="close-button" onClick={closeModal}>×</button>
               {activeModal === "about" && (
                 <>

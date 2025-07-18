@@ -1,7 +1,11 @@
 import { BookOpen, Code, Database, Server, Calendar, Download, Users, Settings, Globe } from "lucide-react";
 import "./guide-page.css";
+import { useEffect } from "react";
 
 function GuidePage() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="dark-gradient-bgg">
       <div className="containerg">

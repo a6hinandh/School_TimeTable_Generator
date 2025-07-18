@@ -139,12 +139,15 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
   };
 
   const handleSave = async () => {
-    const timetableData = {
+  
+    try {
+      const timetableData = {
       class_timetable: currentClassTimeTable,
       teacher_timetable: currentTeacherTimeTable,
       teacherData: teacherData
     };
     if (id) {
+      
       const token = await getToken();
       const response = await fetchWithAuth(
         token,
@@ -173,6 +176,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
         },
       });
     } else {
+      
       const token = await getToken();
       const response = await fetchWithAuth(token, "http://localhost:8000/add", {
         method: "POST",
@@ -183,7 +187,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
       });
       const result = await response.json();
 
-      navigate(`/display/${id}`, {
+      navigate(`/display/${result._id}`, {
         state: {
           classTimetable: timetableData.class_timetable,
           teacherTimetable: timetableData.teacher_timetable,
@@ -197,6 +201,10 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
         },
       });
     }
+    } catch (error) {
+      console.log(error)
+    }
+    
   };
 
   const renderTimetable = (data) => {
@@ -244,11 +252,11 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
                     ) : (
                       <span className="subject-badge-ett">{period}</span>
                     )}
-                    {selectedPeriods.some(
+                    {/* {selectedPeriods.some(
                       (sel) =>
                         sel.dayIndex === dayIndex &&
                         sel.periodIndex === periodIndex
-                    ) && <div className="selection-indicator-ett">Selected</div>}
+                    ) && <div className="selection-indicator-ett">Selected</div>} */}
                   </td>
                 ))}
               </tr>
@@ -272,7 +280,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
 
         {/* Controls Section */}
         <div className="controls-section-ett">
-          <div className="action-controls-ett">
+          <div className="action-controls-ett" style={{paddingLeft:"1rem"}}>
             <div className="button-group-ett">
               <button
                 type="button"
@@ -321,7 +329,7 @@ const EditTimetable = ({ classTimetable, teacherTimetable, id, teacherData }) =>
         {/* Timetable Card */}
         {selectedItem && (
           <div className="timetable-card-ett">
-            <div className="card-header-ett">
+            <div className="card-header-ett" style={{paddingLeft:"1rem"}}>
               <h4 className="card-title-ett">Class: {selectedItem}</h4>
             </div>
             <div className="card-body-ett">

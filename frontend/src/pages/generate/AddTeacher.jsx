@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Loader2, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Loader2, X, Save } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import DropdownChecklist from "./components/DropdownChecklist";
@@ -13,6 +13,10 @@ function AddTeacher() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { state } = useLocation();
+  const location = useLocation()
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const {
     classes,
     subjects,
@@ -220,6 +224,7 @@ function AddTeacher() {
   };
 
   const handleBackToTeachers = () => {
+    console.log(savedTeachersData)
     // Restore the saved teachers data when going back
     if (savedTeachersData) {
       setTeachers(savedTeachersData);
@@ -312,7 +317,7 @@ function AddTeacher() {
                 onClick={handleSavetoDb}
                 title="Save"
               >
-                <X className="icon-ge" />
+                <Save className="icon-ge" />
                 Save
               </button>
               
@@ -321,7 +326,7 @@ function AddTeacher() {
                 onClick={handleBackToTeachers}
                 title="Go back to edit teachers"
               >
-                <X className="icon-ge" />
+                <span className="button-icon-td">👥</span>
                 Edit Teachers
               </button>
               
@@ -331,6 +336,7 @@ function AddTeacher() {
                 data-bs-toggle="modal"
                 data-bs-target="#exampleModal"
               >
+                <span className="button-icon-td">✏️</span>
                 Edit timetable
               </button>
 
@@ -386,20 +392,11 @@ function AddTeacher() {
                   <EditTimetable
                     classTimetable={timetableData.class_timetable}
                     teacherTimetable={timetableData.teacher_timetable}
+                    id={location.state?.timetableId}
+                    teacherData = {location.state?.teacherData}
                   />
                 </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                  >
-                    Close
-                  </button>
-                  <button type="button" className="btn btn-primary">
-                    Save changes
-                  </button>
-                </div>
+                
               </div>
             </div>
           </div>

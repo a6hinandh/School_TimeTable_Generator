@@ -387,12 +387,13 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   backdrop-filter: blur(10px);
+  
 }
 
 .modal-header-td {
   background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  padding: 1rem 2rem;
 }
 
 .modal-title-td {
@@ -643,6 +644,11 @@
   .modal {
     display: none !important;
   }
+
+  .modal,
+.modal-backdrop {
+  z-index: 9999 !important;
+}
   
   .timetable-card-td {
     border: 1px solid #000 !important;

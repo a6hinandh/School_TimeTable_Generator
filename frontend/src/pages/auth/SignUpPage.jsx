@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DotGrid from "../../../styles/DotGrid/DotGrid";
 import InputField from "./components/InputField";
 import { useNavigate } from "react-router";
@@ -17,6 +17,10 @@ function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
 
 
   const handleSignUpWithEmail = async () => {
