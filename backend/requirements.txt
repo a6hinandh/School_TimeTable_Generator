@@ -1,28 +1,19 @@
 # Core FastAPI dependencies
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.6
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==1.10.15         # ✅ Avoids Rust-based pydantic-core (v2+ causes build issues)
+python-multipart==0.0.9
 
 # Constraint Programming / Optimization
-ortools==9.14.6206
-
+ortools==9.14.6206        # ✅ Confirmed working version on PyPI
 
 # Database dependencies
-pymongo[srv]==4.6.0
-python-dotenv==1.0.0
+pymongo==4.7.2            # ✅ Avoid extras like [srv]; full URI works anyway
+python-dotenv==1.0.1
 
 # Timezone handling
-pytz==2023.3
+pytz==2024.1
 
-# Additional utilities (if needed)
-# bson is included with pymongo
-# typing is built-in with Python 3.5+
-# datetime is built-in
-# os is built-in
-# traceback is built-in
-# collections is built-in
-
-# Development dependencies (optional)
-# pytest==7.4.3
-# pytest-asyncio==0.21.1
+# Optional (used locally only, not needed on Render)
+# pytest==8.2.1
+# pytest-asyncio==0.23.5
