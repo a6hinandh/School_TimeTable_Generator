@@ -510,7 +510,6 @@ function AddTeacher() {
         )}
 
         <div className="teachers-container">
-          {/* Rest of the teacher form remains the same */}
           {teachers.map((teacher, index) => {
             return (
               <div className="teacher-card" key={index}>
@@ -617,6 +616,17 @@ function AddTeacher() {
                     {teacher.periods.map((period, ind) => {
                       return (
                         <div className="period-row" key={ind}>
+                          {/* Delete Period Button - positioned absolutely in top-right */}
+                          {teacher.periods.length > 1 && (
+                            <button
+                              onClick={() => handleDeletePeriod(index, ind)}
+                              className="delete-period-btn"
+                              title="Delete Period"
+                            >
+                              <X className="icon-ge" />
+                            </button>
+                          )}
+
                           <div className="input-group-ge">
                             <label className="input-label">Class</label>
                             <select
@@ -681,19 +691,6 @@ function AddTeacher() {
                               }
                             />
                           </div>
-
-                          {/* Delete Period Button */}
-                          {teacher.periods.length > 1 && (
-                            <div className="delete-period-container">
-                              <button
-                                onClick={() => handleDeletePeriod(index, ind)}
-                                className="delete-period-btn"
-                                title="Delete Period"
-                              >
-                                <X className="icon-ge" />
-                              </button>
-                            </div>
-                          )}
                         </div>
                       );
                     })}

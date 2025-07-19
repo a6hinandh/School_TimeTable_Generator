@@ -399,42 +399,83 @@
   margin-bottom: 1.5rem;
 }
 
+/* Period row with relative positioning for absolute delete button */
 .period-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr; /* Remove the auto column for delete button */
   gap: 1rem;
   align-items: end;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative; /* Add relative positioning */
 }
 
+/* Remove the delete-period-container as it's no longer needed */
 .delete-period-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 5px;
+  display: none; /* Hide the container since we're positioning absolutely */
 }
 
+/* Updated delete period button - positioned absolutely in top-right corner */
 .delete-period-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   border: none;
-  border-radius: 8px;
-  padding: 0.rem;
+  border-radius: 6px; /* Smaller border radius */
+  padding: 0.25rem; /* Smaller padding */
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 50px;
-  width: 50px;
+  height: 32px; /* Smaller height */
+  width: 32px; /* Smaller width */
+  z-index: 10; /* Ensure it's above other content */
 }
 
 .delete-period-btn:hover {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   transform: scale(1.05);
+}
+
+/* Ensure the icon in delete button is appropriately sized */
+.delete-period-btn .icon-ge {
+  width: 16px; /* Smaller icon */
+  height: 16px; /* Smaller icon */
+}
+
+/* Update mobile responsive styles */
+@media (max-width: 768px) {
+  .period-row {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 1rem;
+    padding-top: 2rem; /* Add top padding to accommodate the delete button */
+  }
+  
+  .delete-period-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .period-row {
+    padding: 1.5rem 0.75rem 0.75rem 0.75rem; /* Adjust padding for mobile */
+  }
+  
+  .delete-period-btn {
+    height: 28px;
+    width: 28px;
+  }
+  
+  .delete-period-btn .icon-ge {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 /* Add teacher container */

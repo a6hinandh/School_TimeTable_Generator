@@ -1,4 +1,4 @@
-// NavBar.jsx (unchanged)
+// Fixed NavBar.jsx
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-react";
 import { Outlet, useNavigate } from "react-router";
 import { BookOpen, Menu, X } from "lucide-react";
@@ -15,37 +15,50 @@ function NavBar() {
     window.location.href = "/";
   };
 
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    closeMenu(); // Close mobile menu after navigation
+  };
+
   return (
     <>
       <nav className="navbar">
-        <div className="navbar-container" style={{display:"flex", justifyContent:"space-between"}}>
+        <div className="navbar-container">
           <div className="navbar-left">
-            <div className="navbar-brand" onClick={() => navigate("/")}>
+            <div className="navbar-brand" onClick={() => handleNavigate("/")}>
               <BookOpen size={28} className="brand-icon" />
               <span className="brand-text">TimeTable Generator</span>
             </div>
-            {isSignedIn ? (
+          </div>
+
+          {/* Navbar Center - for potential future nav links */}
+          <div className="navbar-center">
+            {isSignedIn && (
               <button
                 className="nav-link dashboard-link"
-                onClick={() => navigate(isSignedIn ? "/dashboard" : "/login")}
+                onClick={() => handleNavigate("/dashboard")}
               >
                 Dashboard
               </button>
-            ):(
-              <div style={{width:"80px"}}/>
             )}
           </div>
+
+          {/* Desktop Navigation */}
           <div className="navbar-right">
             <SignedOut>
               <button
                 className="nav-link signup-btn"
-                onClick={() => navigate("/sign-up")}
+                onClick={() => handleNavigate("/sign-up")}
               >
                 Sign Up
               </button>
               <button
                 className="nav-link login-btn"
-                onClick={() => navigate("/login")}
+                onClick={() => handleNavigate("/login")}
               >
                 Login
               </button>
@@ -53,7 +66,7 @@ function NavBar() {
             <SignedIn>
               {isLoaded && user && (
                 <div className="user-section">
-                  <span className="user-greeting">{user.firstName}</span>
+                  <span className="user-greeting">Hi, {user.firstName}!</span>
                   <button
                     className="nav-link logout-btn"
                     onClick={handleLogOut}
@@ -64,47 +77,56 @@ function NavBar() {
               )}
             </SignedIn>
           </div>
+
+          {/* Mobile Menu Button */}
           <button
             className="mobile-menu-btn"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-        {isMenuOpen && (
-          <div className="mobile-menu">
-            {isSignedIn && (
-              <button
-                className="mobile-nav-link"
-                onClick={() => navigate(isSignedIn ? "/dashboard" : "/login")}
-              >
-                Dashboard
-              </button>
-            )}
 
-            <SignedOut>
-              <button
-                className="mobile-nav-link"
-                onClick={() => navigate("/sign-up")}
-              >
-                Sign Up
-              </button>
-              <button
-                className="mobile-nav-link"
-                onClick={() => navigate("/login")}
-              >
-                Login
-              </button>
-            </SignedOut>
-            <SignedIn>
-              {isLoaded && user && (
-                <button className="mobile-nav-link" onClick={handleLogOut}>
+        {/* Mobile Menu */}
+        <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
+          {isSignedIn && (
+            <button
+              className="mobile-nav-link"
+              onClick={() => handleNavigate("/dashboard")}
+            >
+              Dashboard
+            </button>
+          )}
+
+          <SignedOut>
+            <button
+              className="mobile-nav-link"
+              onClick={() => handleNavigate("/sign-up")}
+            >
+              Sign Up
+            </button>
+            <button
+              className="mobile-nav-link"
+              onClick={() => handleNavigate("/login")}
+            >
+              Login
+            </button>
+          </SignedOut>
+
+          <SignedIn>
+            {isLoaded && user && (
+              <>
+                <div className="mobile-user-greeting">
+                  Hi, {user.firstName}!
+                </div>
+                <button className="mobile-nav-link logout-btn" onClick={handleLogOut}>
                   Log out
                 </button>
-              )}
-            </SignedIn>
-          </div>
-        )}
+              </>
+            )}
+          </SignedIn>
+        </div>
       </nav>
       <Outlet />
     </>
