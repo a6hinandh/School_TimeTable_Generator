@@ -103,7 +103,7 @@ function LoginPage() {
               </button>
               <p className="mb-0">or</p>
               <div className="google-auth-button rounded-5 p-2 px-3 justify-content-center align-items-center d-flex gap-2" style={{cursor:"pointer"}} onClick={handleSignInWithGoogle}>
-                <p className="pt-2 mb-0">Continue with Google</p>
+                <p className="mb-0">Continue with Google</p>
                 <img src="./google.png" className="rounded-pill" style={{width: "30px",height:"30px"}}/>
               </div>
               <div className="d-flex gap-2">

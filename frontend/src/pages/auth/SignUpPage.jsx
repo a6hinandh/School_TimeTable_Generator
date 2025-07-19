@@ -140,7 +140,7 @@ function SignUpPage() {
                 style={{ cursor: "pointer" }}
                 onClick={handleSignInWithGoogle}
               >
-                <p className="pt-2 mb-0">Continue with Google</p>
+                <p className="mb-0">Continue with Google</p>
                 <img
                   src="/google.png"
                   className="rounded-pill"
