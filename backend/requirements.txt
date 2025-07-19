@@ -1,17 +1,27 @@
+# Core FastAPI dependencies
 fastapi==0.104.1
 uvicorn==0.24.0
 pydantic==2.5.0
-ortools==9.8.3296
 python-multipart==0.0.6
 
+# Constraint Programming / Optimization
+ortools==9.8.3296
 
+# Database dependencies
+pymongo[srv]==4.6.0
+python-dotenv==1.0.0
 
-# Install these:
+# Timezone handling
+pytz==2023.3
 
-# python -m pip install "pymongo[srv]" (run this command)
-# (pip install the following):
-# pymongo 
-# python-dotenv
+# Additional utilities (if needed)
+# bson is included with pymongo
+# typing is built-in with Python 3.5+
+# datetime is built-in
+# os is built-in
+# traceback is built-in
+# collections is built-in
 
-# To run the server, use this command:
-# uvicorn server:app --reload
+# Development dependencies (optional)
+# pytest==7.4.3
+# pytest-asyncio==0.21.1

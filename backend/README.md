@@ -21,4 +21,3 @@ python -m uvicorn api.server:app --reload
 - `config.py` → Settings like classes and period counts
 - `models.py` → Data models (Teacher, Timetable)
 - `server.py` → FastAPI app
--`teachers.py` -> Sample Data
