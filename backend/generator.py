@@ -95,7 +95,7 @@ def validate_input_constraints(teacher_list: dict, classes: List[str], working_d
                             "periods": periods
                         })
     
-    # Check 5: Main subject availability for class teachers
+    # Check 5: Main subject availability for class teachers (UPDATED - More Flexible)
     for teacher_name, teacher in teacher_list.items():
         if teacher.assigned_class and hasattr(teacher, 'main_subject'):
             cls = teacher.assigned_class
@@ -109,18 +109,8 @@ def validate_input_constraints(teacher_list: dict, classes: List[str], working_d
                     "class": cls,
                     "main_subject": main_subject
                 })
-            else:
-                main_subject_periods = teacher.subjects_by_class[cls][main_subject]
-                if main_subject_periods < working_days:
-                    errors.append({
-                        "type": "INSUFFICIENT_MAIN_SUBJECT",
-                        "message": f"Class teacher {teacher_name} has only {main_subject_periods} periods of main subject '{main_subject}' for class {cls}, but needs at least {working_days} periods (1 per day for first period)",
-                        "teacher": teacher_name,
-                        "class": cls,
-                        "main_subject": main_subject,
-                        "assigned_periods": main_subject_periods,
-                        "required_periods": working_days
-                    })
+            # REMOVED: The strict check for minimum periods per day
+            # Now the solver will just assign as many first periods as possible based on available periods
     
     # Check 6: Duplicate subject assignments
     subject_assignments = defaultdict(list)
@@ -278,7 +268,7 @@ def generate_with_teacher_list(teacher_list: dict, classes: List[str], working_d
                     block_vars.append(is_block)
             model.Add(sum(block_vars) == num_blocks)
 
-    # Class teacher main subject first period constraint
+    # UPDATED: Class teacher main subject first period constraint (More Flexible)
     for teacher in teacher_list.values():
         if teacher.assigned_class and hasattr(teacher, 'main_subject'):
             cls = teacher.assigned_class
@@ -296,7 +286,12 @@ def generate_with_teacher_list(teacher_list: dict, classes: List[str], working_d
                     model.Add(timetable[cls][d][0] == main_subject_id).OnlyEnforceIf(is_first)
                     model.Add(timetable[cls][d][0] != main_subject_id).OnlyEnforceIf(is_first.Not())
                     first_period_main_subject.append(is_first)
-                model.Add(sum(first_period_main_subject) == min(working_days, total_main_subject_periods))
+                
+                # UPDATED: Assign as many first periods as available, up to total periods
+                # If teacher has 2 periods, assign 2 first periods
+                # If teacher has 10 periods, assign up to working_days first periods
+                max_first_periods = min(working_days, total_main_subject_periods)
+                model.Add(sum(first_period_main_subject) == max_first_periods)
 
     # Valid assignment constraint
     for cls in classes:
