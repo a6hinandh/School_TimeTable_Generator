@@ -5,7 +5,8 @@ pydantic==2.5.0
 python-multipart==0.0.6
 
 # Constraint Programming / Optimization
-ortools==9.8.3296
+ortools==9.14.6206
+
 
 # Database dependencies
 pymongo[srv]==4.6.0
