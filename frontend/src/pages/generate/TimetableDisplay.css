@@ -819,3 +819,223 @@
     padding: 0; /* Remove horizontal padding */
   }
 }
+/* Error State Styles for TimetableDisplay */
+
+.error-state-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.error-details-container {
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #fca5a5;
+}
+
+.error-header h3 {
+  color: #dc2626;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.error-icon {
+  color: #dc2626;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.error-content {
+  color: #7f1d1d;
+}
+
+.error-main-message {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.error-type {
+  background: rgba(220, 38, 38, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.error-type strong {
+  color: #dc2626;
+}
+
+.error-specific-details {
+  background: rgba(239, 68, 68, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #ef4444;
+}
+
+.error-specific-details strong {
+  color: #dc2626;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.error-details-list {
+  margin-top: 0.5rem;
+}
+
+.error-detail-item {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+
+.error-detail-item strong {
+  color: #b91c1c;
+  display: inline;
+  margin-right: 0.5rem;
+}
+
+.error-detail-item ul {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+}
+
+.error-detail-item li {
+  margin-bottom: 0.25rem;
+  color: #7f1d1d;
+}
+
+.error-detail-item pre {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.error-suggestions {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef7cd 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.error-suggestions h4 {
+  color: #92400e;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.error-suggestions ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.error-suggestions li {
+  color: #78350f;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.error-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fca5a5;
+}
+
+.retry-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.retry-button:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.retry-button:active {
+  transform: translateY(0);
+}
+
+.no-data-alert-td {
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  max-width: 600px;
+  margin: 2rem auto;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+}
+
+.icon-ge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .error-details-container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .error-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+  }
+  
+  .retry-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

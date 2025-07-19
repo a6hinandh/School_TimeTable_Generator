@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, X, Save } from "lucide-react";
+import { Plus, Loader2, X, Save, AlertTriangle, RefreshCw } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import DropdownChecklist from "./components/DropdownChecklist";
@@ -14,9 +14,11 @@ function AddTeacher() {
   const { user } = useUser();
   const { state } = useLocation();
   const location = useLocation();
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  
   const {
     classes,
     subjects,
@@ -26,6 +28,7 @@ function AddTeacher() {
     teacherData,
     timetableId,
   } = state || {};
+  
   const [teachers, setTeachers] = useState(() => {
     if (teacherData) {
       return teacherData;
@@ -41,13 +44,16 @@ function AddTeacher() {
       },
     ];
   });
+  
   const [loading, setLoading] = useState(false);
   const [timetableData, setTimetableData] = useState(null);
   const [error, setError] = useState("");
+  const [errorDetails, setErrorDetails] = useState(null);
 
   // Store the teachers data when timetable is generated
   const [savedTeachersData, setSavedTeachersData] = useState(null);
 
+  // Component functions remain the same until generateTimetable...
   const handleAddTeacher = () => {
     setTeachers([
       ...teachers,
@@ -136,9 +142,11 @@ function AddTeacher() {
     setTeachers(newTeachers);
   };
 
+  // Updated generateTimetable function with proper error handling
   const generateTimetable = async () => {
     setLoading(true);
     setError("");
+    setErrorDetails(null);
 
     try {
       // Validate input
@@ -207,17 +215,32 @@ function AddTeacher() {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to generate timetable");
+      const data = await response.json();
+      
+      // Check if the response indicates an error or infeasible solution
+      if (data.status === "ERROR" || data.status === "INFEASIBLE") {
+        setError(data.message || "Failed to generate timetable");
+        setErrorDetails(data);
+        return;
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || "Failed to generate timetable");
+      }
+
+      // Check if timetables are empty (additional safety check)
+      if (!data.class_timetable || Object.keys(data.class_timetable).length === 0) {
+        setError("No feasible timetable could be generated with the current constraints.");
+        setErrorDetails(data);
+        return;
+      }
 
       setTimetableData(data);
+      
     } catch (err) {
       console.error("Error generating timetable:", err);
       setError(err.message || "Failed to generate timetable");
+      setErrorDetails(null);
     } finally {
       setLoading(false);
     }
@@ -230,7 +253,8 @@ function AddTeacher() {
       setTeachers(savedTeachersData);
     }
     setTimetableData(null);
-    setError(""); // Clear any errors
+    setError("");
+    setErrorDetails(null);
   };
 
   const handleRegenerateWithCurrentData = async () => {
@@ -302,6 +326,82 @@ function AddTeacher() {
     } catch (error) {
       console.log("Error in saving", error);
     }
+  };
+
+  // Helper function to render error details
+  const renderErrorDetails = () => {
+    if (!errorDetails) return null;
+
+    return (
+      <div className="error-details-container">
+        <div className="error-header">
+          <AlertTriangle className="icon-ge error-icon" />
+          <h4>Timetable Generation Failed</h4>
+        </div>
+        
+        <div className="error-content">
+          <p className="error-main-message">{error}</p>
+          
+          {errorDetails.error_type && (
+            <div className="error-type">
+              <strong>Error Type:</strong> {errorDetails.error_type}
+            </div>
+          )}
+          
+          {errorDetails.error_details && (
+            <div className="error-specific-details">
+              <strong>Details:</strong>
+              {typeof errorDetails.error_details === 'string' ? (
+                <p>{errorDetails.error_details}</p>
+              ) : (
+                <ul>
+                  {Object.entries(errorDetails.error_details).map(([key, value]) => (
+                    <li key={key}>
+                      <strong>{key.replace(/_/g, ' ')}:</strong> {
+                        Array.isArray(value) ? value.join(', ') : 
+                        typeof value === 'object' ? JSON.stringify(value, null, 2) :
+                        String(value)
+                      }
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+          
+          <div className="error-suggestions">
+            <h5>Suggestions to fix this issue:</h5>
+            <ul>
+              <li>Check if teacher period assignments don't exceed available time slots</li>
+              <li>Ensure class schedules don't conflict with teacher availabilities</li>
+              <li>Verify that subject assignments are realistic for the given time frame</li>
+              <li>Consider reducing the number of periods or adjusting teacher workload</li>
+              <li>Make sure all teachers have feasible subject-class combinations</li>
+            </ul>
+          </div>
+          
+          <div className="error-actions">
+            <button
+              className="action-button retry-button"
+              onClick={handleRegenerateWithCurrentData}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="icon-ge animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="icon-ge" />
+                  Try Again
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // If timetable is generated, show the timetable display
@@ -397,9 +497,20 @@ function AddTeacher() {
           )}
         </div>
 
-        {error && <div className="error-alert">{error}</div>}
+        {/* Enhanced Error Display */}
+        {error && (
+          <div className="error-section">
+            {errorDetails ? renderErrorDetails() : (
+              <div className="error-alert">
+                <AlertTriangle className="icon-ge" />
+                {error}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="teachers-container">
+          {/* Rest of the teacher form remains the same */}
           {teachers.map((teacher, index) => {
             return (
               <div className="teacher-card" key={index}>

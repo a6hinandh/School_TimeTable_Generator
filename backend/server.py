@@ -3,15 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from models import InputTeacher
-from generator import generate_from_input
+from generator import generate_from_input, TimetableError
 from dotenv import load_dotenv
 from datetime import datetime
 from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 from pytz import timezone
 import pymongo
-
-
 import traceback
 import os
 
@@ -57,7 +55,6 @@ class TimetableRequest(BaseModel):
     teachers: List[TeacherInput]
     userId : str 
     title : Optional[str] = None
-    
 
 @app.post("/generate")
 async def generate_timetable(request: TimetableRequest):
@@ -102,7 +99,9 @@ async def generate_timetable(request: TimetableRequest):
                 "message": "❌ Timetable generation failed. No feasible solution found.",
                 "class_timetable": {},
                 "teacher_timetable": {},
-                "status": "INFEASIBLE"
+                "status": "INFEASIBLE",
+                "error_type": "UNKNOWN",
+                "error_details": {}
             }
 
         return {
@@ -110,25 +109,61 @@ async def generate_timetable(request: TimetableRequest):
             "teacher_timetable": teacher_timetable.data,
             "message": "✅ Timetable generated successfully",
             "status": "FEASIBLE",
-            "userId" : request.userId,
-            "title" : request.title,
-            "teacherData":request.teachers,
-            "classes":request.classes,
-            "subjects":request.subjects,
-            "workingDays":request.workingDays,
-            "periods":request.periods
+            "userId": request.userId,
+            "title": request.title,
+            "teacherData": request.teachers,
+            "classes": request.classes,
+            "subjects": request.subjects,
+            "workingDays": request.workingDays,
+            "periods": request.periods
         }
 
-    except Exception as e:
-        print(f"Error generating timetable: {e}")
-        print(traceback.format_exc())
-        return{
-            "message": f"❌ Timetable generation failed due to error: {str(e)}",
-            "class_timetable":{},
-            "teacher_timetable":{},
-            "status":"ERROR"
+    except TimetableError as te:
+        # Handle custom timetable errors with detailed information
+        print(f"Timetable generation error: {te.message}")
+        print(f"Error type: {te.error_type}")
+        print(f"Error details: {te.details}")
+        
+        return {
+            "message": te.message,
+            "class_timetable": {},
+            "teacher_timetable": {},
+            "status": "ERROR",
+            "error_type": te.error_type,
+            "error_details": te.details
         }
     
+    except ValueError as ve:
+        # Handle other value errors
+        error_message = str(ve)
+        print(f"Value error: {error_message}")
+        
+        return {
+            "message": f"❌ Input validation failed: {error_message}",
+            "class_timetable": {},
+            "teacher_timetable": {},
+            "status": "ERROR",
+            "error_type": "VALUE_ERROR",
+            "error_details": {"original_error": error_message}
+        }
+    
+    except Exception as e:
+        # Handle any other unexpected errors
+        error_message = str(e)
+        print(f"Unexpected error generating timetable: {error_message}")
+        print(traceback.format_exc())
+        
+        return {
+            "message": f"❌ Timetable generation failed due to unexpected error: {error_message}",
+            "class_timetable": {},
+            "teacher_timetable": {},
+            "status": "ERROR",
+            "error_type": "UNEXPECTED_ERROR",
+            "error_details": {
+                "original_error": error_message,
+                "traceback": traceback.format_exc()
+            }
+        }
 
 @app.post("/add")
 async def add_timetable(request: Request):
@@ -171,8 +206,6 @@ async def delete_timetable(timetable_id: str):
     if result.deleted_count == 1:
         return {"message": "Deleted"}
     return {"message": "Not Found"}
-
-
 
 @app.get("/")
 async def root():
