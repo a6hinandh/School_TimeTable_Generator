@@ -33,9 +33,7 @@ function NavBar() {
               <BookOpen size={28} className="brand-icon" />
               <span className="brand-text">TimeTable Generator</span>
             </div>
-          </div>
-
-          {/* Navbar Center - for potential future nav links */}
+            {/* Navbar Center - for potential future nav links */}
           <div className="navbar-center">
             {isSignedIn && (
               <button
@@ -46,6 +44,9 @@ function NavBar() {
               </button>
             )}
           </div>
+          </div>
+
+          
 
           {/* Desktop Navigation */}
           <div className="navbar-right">
@@ -90,14 +91,7 @@ function NavBar() {
 
         {/* Mobile Menu */}
         <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
-          {isSignedIn && (
-            <button
-              className="mobile-nav-link"
-              onClick={() => handleNavigate("/dashboard")}
-            >
-              Dashboard
-            </button>
-          )}
+          
 
           <SignedOut>
             <button
@@ -120,6 +114,12 @@ function NavBar() {
                 <div className="mobile-user-greeting">
                   Hi, {user.firstName}!
                 </div>
+                <button
+              className="mobile-nav-link"
+              onClick={() => handleNavigate("/dashboard")}
+            >
+              Dashboard
+            </button>
                 <button className="mobile-nav-link logout-btn" onClick={handleLogOut}>
                   Log out
                 </button>
