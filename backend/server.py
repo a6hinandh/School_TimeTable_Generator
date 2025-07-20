@@ -16,11 +16,12 @@ import os
 load_dotenv()
 
 app = FastAPI()
+frontend_url = os.getenv("FRONTEND_URL")
 
 # ✅ Enable CORS for correct frontend port (5173)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Updated from 3000 to 5173
+    allow_origins=[frontend_url],  # Updated from 3000 to 5173
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
