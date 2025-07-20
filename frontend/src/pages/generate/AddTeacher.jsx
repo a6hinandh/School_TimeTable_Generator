@@ -205,7 +205,7 @@ function AddTeacher() {
       const token = await getToken();
       const response = await fetchWithAuth(
         token,
-        "http://localhost:8000/generate",
+        `${import.meta.env.VITE_API_BASE_URL}/generate`,
         {
           method: "POST",
           headers: {
@@ -269,7 +269,7 @@ function AddTeacher() {
           const token = await getToken();
           const response = await fetchWithAuth(
             token,
-            `http://localhost:8000/update-timetable/${timetableId}`,
+            `${import.meta.env.VITE_API_BASE_URL}/update-timetable/${timetableId}`,
             {
               method: "PUT",
               headers: {
@@ -297,7 +297,7 @@ function AddTeacher() {
           const token = await getToken();
           const response = await fetchWithAuth(
             token,
-            "http://localhost:8000/add",
+            `${import.meta.env.VITE_API_BASE_URL}/add`,
             {
               method: "POST",
               headers: {
