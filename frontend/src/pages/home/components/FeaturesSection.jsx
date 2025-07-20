@@ -95,7 +95,7 @@ function FeaturesSection() {
                 </div>
                 <div className="feature-card-back">
                   <div className={`feature-icon-large bg-gradient-to-br ${feature.gradient}`}>
-                    <Icon size={48} className="icon-large" />
+                    <Icon size={32} className="icon-large" />
                   </div>
                   <div className="feature-details">
                     <h4 className="feature-back-title">{feature.title}</h4>

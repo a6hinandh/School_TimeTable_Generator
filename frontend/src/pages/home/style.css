@@ -628,7 +628,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 450px;
-  height: 450px;
+  
 }
 
 .dot {
@@ -1093,6 +1093,11 @@
   .footer-social {
     gap: 1rem;
   }
+
+  .modal-content{
+    min-width: 95%;
+    
+  }
 }
 
 @media (max-width: 480px) {
@@ -1124,12 +1129,21 @@
     height: 220px;
   }
 
+  .feature-card:hover{
+    height: 400px;
+  }
+
   .feature-title {
     font-size: 1.2rem;
   }
 
   .feature-description {
     font-size: 0.9rem;
+  }
+
+  .modal-content{
+    min-width: 95%;
+
   }
 }
 .modal-overlay {
@@ -1150,7 +1164,7 @@
   border: 1px solid #3282b8;
   padding: 2rem;
   border-radius: 20px;
-  width: 100%;
+  width: 45%;
   max-width: 100%;
   color: white;
   position: relative;

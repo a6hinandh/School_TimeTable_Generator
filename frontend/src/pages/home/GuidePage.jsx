@@ -24,12 +24,12 @@ function GuidePage() {
                 Our platform is built on a modern, scalable, and developer-friendly architecture:
               </p>
               <ul className="feature-descriptiong" style={{ listStyleType: "disc", paddingLeft: "2rem" }}>
-                <li><strong>Frontend:</strong> React + Bootstrap</li>
+                <li><strong>Frontend:</strong> React</li>
                 <li><strong>Authentication:</strong> Clerk</li>
                 <li><strong>Backend:</strong> FastAPI (Python)</li>
                 <li><strong>Database:</strong> MongoDB</li>
                 <li><strong>Timetable Engine:</strong> Google OR-Tools (Constraint Programming Solver)</li>
-                <li><strong>Deployment:</strong> Cloud-ready</li>
+                <li><strong>Deployment:</strong> Render</li>
               </ul>
             </section>
 
