@@ -163,7 +163,7 @@ const EditTimetable = () => {
         const token = await getToken();
         const response = await fetchWithAuth(
           token,
-          `http://localhost:8000/update-timetable/${id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/update-timetable/${id}`,
           {
             method: "PUT",
             headers: {
@@ -191,7 +191,7 @@ const EditTimetable = () => {
         const token = await getToken();
         const response = await fetchWithAuth(
           token,
-          "http://localhost:8000/add",
+          `${import.meta.env.VITE_API_BASE_URL}/add`,
           {
             method: "POST",
             headers: {

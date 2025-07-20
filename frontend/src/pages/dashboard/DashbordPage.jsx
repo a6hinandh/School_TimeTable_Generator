@@ -43,7 +43,7 @@ function DashbordPage() {
           const token = await getToken();
           const res = await fetchWithAuth(
             token,
-            `http://localhost:8000/get-timetables/${user.id}`
+            `${import.meta.env.VITE_API_BASE_URL}/get-timetables/${user.id}`
           );
           const data = await res.json();
           setTimetables(data);
@@ -64,7 +64,7 @@ function DashbordPage() {
       const token = await getToken();
       const res = await fetchWithAuth(
         token,
-        `http://localhost:8000/delete-timetable/${timetableId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/delete-timetable/${timetableId}`,
         { method: "DELETE" }
       );
       setTimetables((prev) =>
