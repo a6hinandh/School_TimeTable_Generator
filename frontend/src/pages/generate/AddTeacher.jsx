@@ -14,6 +14,8 @@ function AddTeacher() {
   const { user } = useUser();
   const { state } = useLocation();
   const location = useLocation();
+   const [error, setError] = useState("");
+  const [errorDetails, setErrorDetails] = useState(null);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -47,8 +49,7 @@ function AddTeacher() {
   
   const [loading, setLoading] = useState(false);
   const [timetableData, setTimetableData] = useState(null);
-  const [error, setError] = useState("");
-  const [errorDetails, setErrorDetails] = useState(null);
+ 
 
   // Store the teachers data when timetable is generated
   const [savedTeachersData, setSavedTeachersData] = useState(null);
@@ -79,7 +80,7 @@ function AddTeacher() {
     const newTeachers = [...teachers];
     newTeachers[index].periods = [
       ...newTeachers[index].periods,
-      { class_name: "", subject: "", noOfPeriods: "" },
+      { class_name: "", subject: newTeachers[index].mainSubject, noOfPeriods: "" },
     ];
     setTeachers(newTeachers);
   };
@@ -108,7 +109,7 @@ function AddTeacher() {
 
   const handleChangePeriodNumber = (index, ind, no) => {
     const newTeachers = [...teachers];
-    newTeachers[index].periods[ind].noOfPeriods = parseInt(no) || 0;
+    newTeachers[index].periods[ind].noOfPeriods = parseInt(no) || null;
     setTeachers(newTeachers);
   };
 
@@ -127,6 +128,7 @@ function AddTeacher() {
   const handleChangeMainSubject = (index, mainSub) => {
     const newTeachers = [...teachers];
     newTeachers[index].mainSubject = mainSub;
+    newTeachers[index].periods = newTeachers[index].periods.map((obj)=>({...obj,subject:mainSub}));
     setTeachers(newTeachers);
   };
 
@@ -147,6 +149,7 @@ function AddTeacher() {
     setLoading(true);
     setError("");
     setErrorDetails(null);
+   
 
     try {
       // Validate input
@@ -216,7 +219,6 @@ function AddTeacher() {
       );
 
       const data = await response.json();
-      
       // Check if the response indicates an error or infeasible solution
       if (data.status === "ERROR" || data.status === "INFEASIBLE") {
         setError(data.message || "Failed to generate timetable");
@@ -243,6 +245,7 @@ function AddTeacher() {
       setErrorDetails(null);
     } finally {
       setLoading(false);
+      window.scrollTo(0, 0);
     }
   };
 
@@ -664,9 +667,9 @@ function AddTeacher() {
                                 )
                               }
                             >
-                              <option>Select Subject</option>
+                              <option>{teacher.mainSubject ? teacher.mainSubject : "Select Subject"}</option>
                               {teacher.subjects.map((sub, subInd) =>
-                                sub !== "" ? (
+                                sub !== "" && sub!==teacher.mainSubject ? (
                                   <option key={subInd} value={sub}>
                                     {sub}
                                   </option>

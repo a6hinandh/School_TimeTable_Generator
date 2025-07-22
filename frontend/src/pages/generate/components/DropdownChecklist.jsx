@@ -39,7 +39,7 @@ const DropdownChecklist = ({ options, selected, onChange }) => {
       >
         <span>
           {selected.length > 0 
-            ? `${selected.length} selected` 
+            ? `${selected.join(", ")}` 
             : 'Select subjects'
           }
         </span>
