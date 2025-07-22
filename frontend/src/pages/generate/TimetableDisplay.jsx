@@ -33,16 +33,45 @@ const TimetableDisplay = ({
 
   // Generate dynamic arrays based on configuration
   const generateDayNames = (numDays) => {
-    const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return allDays.slice(0, Math.min(numDays, 6)); // Max 6 days (Mon-Sat)
+    const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return allDays.slice(0, Math.min(numDays, 7)); // Allow up to 7 days
   };
 
   const generatePeriodNames = (numPeriods) => {
     return Array.from({length: numPeriods}, (_, i) => `Period ${i + 1}`);
   };
 
-  const days = generateDayNames(workingDays);
-  const periods = generatePeriodNames(periodsPerDay);
+  // Get actual dimensions from current data
+  const getCurrentDataDimensions = () => {
+    const currentData = viewMode === "class" ? classTimetable : teacherTimetable;
+    if (!currentData || Object.keys(currentData).length === 0) {
+      return { maxDays: workingDays, maxPeriods: periodsPerDay };
+    }
+
+    let maxDays = 0;
+    let maxPeriods = 0;
+
+    // Check all timetables to find maximum dimensions
+    Object.values(currentData).forEach(timetableData => {
+      if (Array.isArray(timetableData)) {
+        maxDays = Math.max(maxDays, timetableData.length);
+        timetableData.forEach(dayData => {
+          if (Array.isArray(dayData)) {
+            maxPeriods = Math.max(maxPeriods, dayData.length);
+          }
+        });
+      }
+    });
+
+    return {
+      maxDays: maxDays || workingDays,
+      maxPeriods: maxPeriods || periodsPerDay
+    };
+  };
+
+  const { maxDays, maxPeriods } = getCurrentDataDimensions();
+  const days = generateDayNames(maxDays);
+  const periods = generatePeriodNames(maxPeriods);
 
   useEffect(() => {
     if (location.state) {
@@ -58,14 +87,14 @@ const TimetableDisplay = ({
           const detectedDays = firstClass.length;
           const detectedPeriods = firstClass[0]?.length || 8;
           
-          setWorkingDays(Math.min(detectedDays, 6)); // Max 6 days
+          setWorkingDays(Math.min(detectedDays, 7)); // Max 7 days
           setPeriodsPerDay(Math.max(detectedPeriods, 1)); // Min 1 period
         }
       }
 
       // Use configuration from location state if available
       if (location.state.workingDays) {
-        setWorkingDays(Math.min(location.state.workingDays, 6));
+        setWorkingDays(Math.min(location.state.workingDays, 7));
       }
       if (location.state.periods) {
         setPeriodsPerDay(Math.max(location.state.periods, 1));
@@ -267,7 +296,7 @@ const TimetableDisplay = ({
       headRow.appendChild(thDay);
 
       // Use dynamic periods based on actual data length
-      const actualPeriods = data[0]?.length || periodsPerDay;
+      const actualPeriods = Math.max(...data.map(day => day.length));
       const periodsToShow = generatePeriodNames(actualPeriods);
       
       periodsToShow.forEach((period) => {
@@ -293,15 +322,16 @@ const TimetableDisplay = ({
         tdDay.style.backgroundColor = "#f5f5f5";
         tr.appendChild(tdDay);
 
-        rowData.forEach((period) => {
+        // Ensure we render all periods, even if some days have fewer periods
+        for (let periodIndex = 0; periodIndex < actualPeriods; periodIndex++) {
           const td = document.createElement("td");
-          td.textContent = period || "Free";
+          td.textContent = rowData[periodIndex] || "Free";
           td.style.border = "1px solid #000";
           td.style.padding = "6px";
           td.style.textAlign = "center";
           td.style.color = "#000";
           tr.appendChild(td);
-        });
+        }
 
         tbody.appendChild(tr);
       });
@@ -360,13 +390,18 @@ const TimetableDisplay = ({
       items.forEach((item) => {
         const data = currentData[item];
         if (data) {
-          const actualPeriods = data[0]?.length || periodsPerDay;
+          const actualPeriods = Math.max(...data.map(day => day.length));
           const periodsToShow = generatePeriodNames(actualPeriods);
           
           combined.push([`${viewMode === "class" ? "Class" : "Teacher"}: ${item}`]);
           combined.push(["Day/Period", ...periodsToShow]);
           data.forEach((row, i) => {
-            combined.push([days[i] || `Day ${i + 1}`, ...row]);
+            const paddedRow = [...row];
+            // Pad row to match maximum periods
+            while (paddedRow.length < actualPeriods) {
+              paddedRow.push("Free");
+            }
+            combined.push([days[i] || `Day ${i + 1}`, ...paddedRow]);
           });
           combined.push([]); // empty row between timetables
         }
@@ -374,12 +409,17 @@ const TimetableDisplay = ({
     } else {
       const data = currentData[selectedItem];
       if (data) {
-        const actualPeriods = data[0]?.length || periodsPerDay;
+        const actualPeriods = Math.max(...data.map(day => day.length));
         const periodsToShow = generatePeriodNames(actualPeriods);
         
         combined.push(["Day/Period", ...periodsToShow]);
         data.forEach((row, i) => {
-          combined.push([days[i] || `Day ${i + 1}`, ...row]);
+          const paddedRow = [...row];
+          // Pad row to match maximum periods
+          while (paddedRow.length < actualPeriods) {
+            paddedRow.push("Free");
+          }
+          combined.push([days[i] || `Day ${i + 1}`, ...paddedRow]);
         });
       }
     }
@@ -403,11 +443,11 @@ const TimetableDisplay = ({
       return <div className="no-data-message-td">No data available</div>;
     }
 
-    // Get actual dimensions from data
+    // Get actual dimensions from this specific timetable data
     const actualDays = data.length;
-    const actualPeriods = data[0]?.length || 0;
+    const actualPeriods = Math.max(...data.map(day => Array.isArray(day) ? day.length : 0));
     
-    // Generate appropriate headers
+    // Generate appropriate headers based on actual data
     const daysToShow = generateDayNames(actualDays);
     const periodsToShow = generatePeriodNames(actualPeriods);
 
@@ -430,13 +470,17 @@ const TimetableDisplay = ({
                 <td className="day-cell-td">
                   {daysToShow[dayIndex] || `Day ${dayIndex + 1}`}
                 </td>
-                {dayData.map((period, periodIndex) => (
+                {/* Render all periods, padding with "Free" if necessary */}
+                {Array.from({ length: actualPeriods }, (_, periodIndex) => (
                   <td key={periodIndex} className="period-cell-td">
-                    {period === "Free" || period === "" ? (
-                      <span className="free-period-td">Free</span>
-                    ) : (
-                      <span className="subject-badge-td">{period}</span>
-                    )}
+                    {(() => {
+                      const period = dayData[periodIndex];
+                      if (period === "Free" || period === "" || period === undefined || period === null) {
+                        return <span className="free-period-td">Free</span>;
+                      } else {
+                        return <span className="subject-badge-td">{period}</span>;
+                      }
+                    })()}
                   </td>
                 ))}
               </tr>
@@ -502,7 +546,7 @@ const TimetableDisplay = ({
               border: '1px solid #ced4da'
             }}
           >
-            {[1, 2, 3, 4, 5, 6].map(day => (
+            {[1, 2, 3, 4, 5, 6, 7].map(day => (
               <option key={day} value={day}>
                 {day} day{day > 1 ? 's' : ''} ({generateDayNames(day).join(', ')})
               </option>
@@ -518,7 +562,7 @@ const TimetableDisplay = ({
             id="periods-per-day"
             type="number"
             min="1"
-            max="15"
+            max="20"
             value={periodsPerDay}
             onChange={(e) => setPeriodsPerDay(Math.max(1, parseInt(e.target.value) || 1))}
             style={{
@@ -535,7 +579,7 @@ const TimetableDisplay = ({
           color: '#6c757d',
           fontStyle: 'italic'
         }}>
-          Configure display settings (Note: Actual timetable data determines the real structure)
+          Actual: {maxDays} days, {maxPeriods} periods (Display adapts to data)
         </div>
       </div>
     );
