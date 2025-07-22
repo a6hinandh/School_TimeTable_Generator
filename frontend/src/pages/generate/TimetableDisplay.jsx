@@ -27,11 +27,48 @@ const TimetableDisplay = ({
   const [errorDetails, setErrorDetails] = useState(null);
   const [errorType, setErrorType] = useState("");
 
+  // Dynamic configuration based on data or location state
+  const [workingDays, setWorkingDays] = useState(5);
+  const [periodsPerDay, setPeriodsPerDay] = useState(8);
+
+  // Generate dynamic arrays based on configuration
+  const generateDayNames = (numDays) => {
+    const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return allDays.slice(0, Math.min(numDays, 6)); // Max 6 days (Mon-Sat)
+  };
+
+  const generatePeriodNames = (numPeriods) => {
+    return Array.from({length: numPeriods}, (_, i) => `Period ${i + 1}`);
+  };
+
+  const days = generateDayNames(workingDays);
+  const periods = generatePeriodNames(periodsPerDay);
+
   useEffect(() => {
     if (location.state) {
       if (location.state.classTimetable || location.state.teacherTimetable) {
         setClassTimetable(location.state.classTimetable || {});
         setTeacherTimetable(location.state.teacherTimetable || {});
+        
+        // Auto-detect working days and periods from actual data
+        const timetableData = location.state.classTimetable || location.state.teacherTimetable || {};
+        const firstClass = Object.values(timetableData)[0];
+        
+        if (firstClass && Array.isArray(firstClass)) {
+          const detectedDays = firstClass.length;
+          const detectedPeriods = firstClass[0]?.length || 8;
+          
+          setWorkingDays(Math.min(detectedDays, 6)); // Max 6 days
+          setPeriodsPerDay(Math.max(detectedPeriods, 1)); // Min 1 period
+        }
+      }
+
+      // Use configuration from location state if available
+      if (location.state.workingDays) {
+        setWorkingDays(Math.min(location.state.workingDays, 6));
+      }
+      if (location.state.periods) {
+        setPeriodsPerDay(Math.max(location.state.periods, 1));
       }
 
       // Enhanced error handling from location state
@@ -51,18 +88,6 @@ const TimetableDisplay = ({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const periods = [
-    "Period 1",
-    "Period 2",
-    "Period 3",
-    "Period 4",
-    "Period 5",
-    "Period 6",
-    "Period 7",
-    "Period 8",
-  ];
 
   const currentData = viewMode === "class" ? classTimetable : teacherTimetable;
   const items = currentData ? Object.keys(currentData) : [];
@@ -241,7 +266,11 @@ const TimetableDisplay = ({
       thDay.style.backgroundColor = "#eaeaea";
       headRow.appendChild(thDay);
 
-      periods.slice(0, data[0].length).forEach((period) => {
+      // Use dynamic periods based on actual data length
+      const actualPeriods = data[0]?.length || periodsPerDay;
+      const periodsToShow = generatePeriodNames(actualPeriods);
+      
+      periodsToShow.forEach((period) => {
         const th = document.createElement("th");
         th.textContent = period;
         th.style.border = "1px solid #000";
@@ -258,7 +287,7 @@ const TimetableDisplay = ({
         const tr = document.createElement("tr");
 
         const tdDay = document.createElement("td");
-        tdDay.textContent = days[dayIndex];
+        tdDay.textContent = days[dayIndex] || `Day ${dayIndex + 1}`;
         tdDay.style.border = "1px solid #000";
         tdDay.style.padding = "6px";
         tdDay.style.backgroundColor = "#f5f5f5";
@@ -331,10 +360,13 @@ const TimetableDisplay = ({
       items.forEach((item) => {
         const data = currentData[item];
         if (data) {
+          const actualPeriods = data[0]?.length || periodsPerDay;
+          const periodsToShow = generatePeriodNames(actualPeriods);
+          
           combined.push([`${viewMode === "class" ? "Class" : "Teacher"}: ${item}`]);
-          combined.push(["Day/Period", ...periods.slice(0, data[0]?.length || 8)]);
+          combined.push(["Day/Period", ...periodsToShow]);
           data.forEach((row, i) => {
-            combined.push([days[i], ...row]);
+            combined.push([days[i] || `Day ${i + 1}`, ...row]);
           });
           combined.push([]); // empty row between timetables
         }
@@ -342,9 +374,12 @@ const TimetableDisplay = ({
     } else {
       const data = currentData[selectedItem];
       if (data) {
-        combined.push(["Day/Period", ...periods.slice(0, data[0]?.length || 8)]);
+        const actualPeriods = data[0]?.length || periodsPerDay;
+        const periodsToShow = generatePeriodNames(actualPeriods);
+        
+        combined.push(["Day/Period", ...periodsToShow]);
         data.forEach((row, i) => {
-          combined.push([days[i], ...row]);
+          combined.push([days[i] || `Day ${i + 1}`, ...row]);
         });
       }
     }
@@ -368,13 +403,21 @@ const TimetableDisplay = ({
       return <div className="no-data-message-td">No data available</div>;
     }
 
+    // Get actual dimensions from data
+    const actualDays = data.length;
+    const actualPeriods = data[0]?.length || 0;
+    
+    // Generate appropriate headers
+    const daysToShow = generateDayNames(actualDays);
+    const periodsToShow = generatePeriodNames(actualPeriods);
+
     return (
       <div className="table-container-td">
         <table className="timetable-table-td">
           <thead className="table-header-td">
             <tr>
               <th className="header-cell-td">Day/Period</th>
-              {periods.slice(0, data[0]?.length || 8).map((period, index) => (
+              {periodsToShow.map((period, index) => (
                 <th key={index} className="header-cell-td period-header-td">
                   {period}
                 </th>
@@ -384,7 +427,9 @@ const TimetableDisplay = ({
           <tbody className="table-body-td">
             {data.map((dayData, dayIndex) => (
               <tr key={dayIndex} className="table-row-td">
-                <td className="day-cell-td">{days[dayIndex]}</td>
+                <td className="day-cell-td">
+                  {daysToShow[dayIndex] || `Day ${dayIndex + 1}`}
+                </td>
                 {dayData.map((period, periodIndex) => (
                   <td key={periodIndex} className="period-cell-td">
                     {period === "Free" || period === "" ? (
@@ -424,6 +469,74 @@ const TimetableDisplay = ({
             {renderTimetable(currentData[item])}
           </div>
         ))}
+      </div>
+    );
+  };
+
+  // Configuration controls component
+  const renderConfigControls = () => {
+    if (showEditOptions) return null; // Hide controls in edit mode
+    
+    return (
+      <div className="config-controls-td" style={{ 
+        display: 'flex', 
+        gap: '1rem', 
+        alignItems: 'center', 
+        marginBottom: '1rem',
+        padding: '1rem',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        border: '1px solid #dee2e6'
+      }}>
+        <div className="config-item">
+          <label htmlFor="working-days" style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>
+            Working Days:
+          </label>
+          <select
+            id="working-days"
+            value={workingDays}
+            onChange={(e) => setWorkingDays(parseInt(e.target.value))}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: '1px solid #ced4da'
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6].map(day => (
+              <option key={day} value={day}>
+                {day} day{day > 1 ? 's' : ''} ({generateDayNames(day).join(', ')})
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="config-item">
+          <label htmlFor="periods-per-day" style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>
+            Periods Per Day:
+          </label>
+          <input
+            id="periods-per-day"
+            type="number"
+            min="1"
+            max="15"
+            value={periodsPerDay}
+            onChange={(e) => setPeriodsPerDay(Math.max(1, parseInt(e.target.value) || 1))}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: '1px solid #ced4da',
+              width: '80px'
+            }}
+          />
+        </div>
+        
+        <div className="config-info" style={{ 
+          fontSize: '0.875rem', 
+          color: '#6c757d',
+          fontStyle: 'italic'
+        }}>
+          Configure display settings (Note: Actual timetable data determines the real structure)
+        </div>
       </div>
     );
   };
@@ -480,6 +593,8 @@ const TimetableDisplay = ({
           </div>
         )}
         <div className="container-td">
+          {renderConfigControls()}
+          
           <div className="controls-section-td">
             <div className="view-mode-controls-td">
               <div className="button-group-td">
