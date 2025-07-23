@@ -208,7 +208,7 @@ async def delete_timetable(timetable_id: str):
         return {"message": "Deleted"}
     return {"message": "Not Found"}
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def root():
     return {"message": "Timetable Generator API"}
 

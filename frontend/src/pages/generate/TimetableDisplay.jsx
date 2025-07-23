@@ -517,74 +517,6 @@ const TimetableDisplay = ({
     );
   };
 
-  // Configuration controls component
-  const renderConfigControls = () => {
-    if (showEditOptions) return null; // Hide controls in edit mode
-    
-    return (
-      <div className="config-controls-td" style={{ 
-        display: 'flex', 
-        gap: '1rem', 
-        alignItems: 'center', 
-        marginBottom: '1rem',
-        padding: '1rem',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        border: '1px solid #dee2e6'
-      }}>
-        <div className="config-item">
-          <label htmlFor="working-days" style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>
-            Working Days:
-          </label>
-          <select
-            id="working-days"
-            value={workingDays}
-            onChange={(e) => setWorkingDays(parseInt(e.target.value))}
-            style={{
-              padding: '0.25rem 0.5rem',
-              borderRadius: '4px',
-              border: '1px solid #ced4da'
-            }}
-          >
-            {[1, 2, 3, 4, 5, 6, 7].map(day => (
-              <option key={day} value={day}>
-                {day} day{day > 1 ? 's' : ''} ({generateDayNames(day).join(', ')})
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="config-item">
-          <label htmlFor="periods-per-day" style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>
-            Periods Per Day:
-          </label>
-          <input
-            id="periods-per-day"
-            type="number"
-            min="1"
-            max="20"
-            value={periodsPerDay}
-            onChange={(e) => setPeriodsPerDay(Math.max(1, parseInt(e.target.value) || 1))}
-            style={{
-              padding: '0.25rem 0.5rem',
-              borderRadius: '4px',
-              border: '1px solid #ced4da',
-              width: '80px'
-            }}
-          />
-        </div>
-        
-        <div className="config-info" style={{ 
-          fontSize: '0.875rem', 
-          color: '#6c757d',
-          fontStyle: 'italic'
-        }}>
-          Actual: {maxDays} days, {maxPeriods} periods (Display adapts to data)
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className={`${!showEditOptions ? "dark-gradient-bg-td" : ""}`}>
       <div
@@ -637,8 +569,6 @@ const TimetableDisplay = ({
           </div>
         )}
         <div className="container-td">
-          {renderConfigControls()}
-          
           <div className="controls-section-td">
             <div className="view-mode-controls-td">
               <div className="button-group-td">
