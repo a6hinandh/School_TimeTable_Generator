@@ -16,6 +16,10 @@
   transition: all 0.3s ease;
 }
 
+.hover-underline:hover {
+  text-decoration: underline;
+}
+
 .auth-container:hover {
   border-color: rgba(50, 130, 184, 0.5);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);

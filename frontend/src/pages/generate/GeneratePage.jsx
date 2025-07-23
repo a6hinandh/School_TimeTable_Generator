@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import "./GeneratePage.css";
+import toast from "react-hot-toast";
 
 function GeneratePage() {
   const [workingDays, setWorkingDays] = useState();
@@ -40,6 +41,12 @@ function GeneratePage() {
     // Validate input before proceeding
     if (!workingDays || !periods) {
       alert("Please enter working days and periods per day");
+      return;
+    }
+
+    if(workingDays>6){
+      toast.error("Number of working days cannot exceed 6")
+      window.scrollTo(0, 0);
       return;
     }
     
