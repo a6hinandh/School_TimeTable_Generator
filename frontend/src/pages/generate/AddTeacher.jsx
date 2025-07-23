@@ -14,13 +14,14 @@ function AddTeacher() {
   const { user } = useUser();
   const { state } = useLocation();
   const location = useLocation();
-   const [error, setError] = useState("");
+  const [error, setError] = useState("");
   const [errorDetails, setErrorDetails] = useState(null);
-  
+  const [assignedClasses, setAssignedClasses] = useState([]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
+
   const {
     classes,
     subjects,
@@ -30,7 +31,7 @@ function AddTeacher() {
     teacherData,
     timetableId,
   } = state || {};
-  
+
   const [teachers, setTeachers] = useState(() => {
     if (teacherData) {
       return teacherData;
@@ -46,13 +47,14 @@ function AddTeacher() {
       },
     ];
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [timetableData, setTimetableData] = useState(null);
- 
 
   // Store the teachers data when timetable is generated
   const [savedTeachersData, setSavedTeachersData] = useState(null);
+
+  
 
   // Component functions remain the same until generateTimetable...
   const handleAddTeacher = () => {
@@ -80,7 +82,11 @@ function AddTeacher() {
     const newTeachers = [...teachers];
     newTeachers[index].periods = [
       ...newTeachers[index].periods,
-      { class_name: "", subject: newTeachers[index].mainSubject, noOfPeriods: "" },
+      {
+        class_name: "",
+        subject: newTeachers[index].mainSubject,
+        noOfPeriods: "",
+      },
     ];
     setTeachers(newTeachers);
   };
@@ -121,14 +127,25 @@ function AddTeacher() {
 
   const handleChangeClass = (index, grade) => {
     const newTeachers = [...teachers];
+    const previousClass = newTeachers[index].assigned_class;
     newTeachers[index].assigned_class = grade;
     setTeachers(newTeachers);
+    setAssignedClasses((prev) => {
+      const withoutOld = previousClass
+        ? prev.filter((c) => c !== previousClass)
+        : prev;
+      return [...withoutOld, grade];
+    });
+    console.log(teachers);
   };
 
   const handleChangeMainSubject = (index, mainSub) => {
     const newTeachers = [...teachers];
     newTeachers[index].mainSubject = mainSub;
-    newTeachers[index].periods = newTeachers[index].periods.map((obj)=>({...obj,subject:mainSub}));
+    newTeachers[index].periods = newTeachers[index].periods.map((obj) => ({
+      ...obj,
+      subject: mainSub,
+    }));
     setTeachers(newTeachers);
   };
 
@@ -149,7 +166,6 @@ function AddTeacher() {
     setLoading(true);
     setError("");
     setErrorDetails(null);
-   
 
     try {
       // Validate input
@@ -231,14 +247,18 @@ function AddTeacher() {
       }
 
       // Check if timetables are empty (additional safety check)
-      if (!data.class_timetable || Object.keys(data.class_timetable).length === 0) {
-        setError("No feasible timetable could be generated with the current constraints.");
+      if (
+        !data.class_timetable ||
+        Object.keys(data.class_timetable).length === 0
+      ) {
+        setError(
+          "No feasible timetable could be generated with the current constraints."
+        );
         setErrorDetails(data);
         return;
       }
 
       setTimetableData(data);
-      
     } catch (err) {
       console.error("Error generating timetable:", err);
       setError(err.message || "Failed to generate timetable");
@@ -272,7 +292,9 @@ function AddTeacher() {
           const token = await getToken();
           const response = await fetchWithAuth(
             token,
-            `${import.meta.env.VITE_API_BASE_URL}/update-timetable/${timetableId}`,
+            `${
+              import.meta.env.VITE_API_BASE_URL
+            }/update-timetable/${timetableId}`,
             {
               method: "PUT",
               headers: {
@@ -341,48 +363,65 @@ function AddTeacher() {
           <AlertTriangle className="icon-ge error-icon" />
           <h4>Timetable Generation Failed</h4>
         </div>
-        
+
         <div className="error-content">
           <p className="error-main-message">{error}</p>
-          
+
           {errorDetails.error_type && (
             <div className="error-type">
               <strong>Error Type:</strong> {errorDetails.error_type}
             </div>
           )}
-          
+
           {errorDetails.error_details && (
             <div className="error-specific-details">
               <strong>Details:</strong>
-              {typeof errorDetails.error_details === 'string' ? (
+              {typeof errorDetails.error_details === "string" ? (
                 <p>{errorDetails.error_details}</p>
               ) : (
                 <ul>
-                  {Object.entries(errorDetails.error_details).map(([key, value]) => (
-                    <li key={key}>
-                      <strong>{key.replace(/_/g, ' ')}:</strong> {
-                        Array.isArray(value) ? value.join(', ') : 
-                        typeof value === 'object' ? JSON.stringify(value, null, 2) :
-                        String(value)
-                      }
-                    </li>
-                  ))}
+                  {Object.entries(errorDetails.error_details).map(
+                    ([key, value]) => (
+                      <li key={key}>
+                        <strong>{key.replace(/_/g, " ")}:</strong>{" "}
+                        {Array.isArray(value)
+                          ? value.join(", ")
+                          : typeof value === "object"
+                          ? JSON.stringify(value, null, 2)
+                          : String(value)}
+                      </li>
+                    )
+                  )}
                 </ul>
               )}
             </div>
           )}
-          
+
           <div className="error-suggestions">
             <h5>Suggestions to fix this issue:</h5>
             <ul>
-              <li>Check if teacher period assignments don't exceed available time slots</li>
-              <li>Ensure class schedules don't conflict with teacher availabilities</li>
-              <li>Verify that subject assignments are realistic for the given time frame</li>
-              <li>Consider reducing the number of periods or adjusting teacher workload</li>
-              <li>Make sure all teachers have feasible subject-class combinations</li>
+              <li>
+                Check if teacher period assignments don't exceed available time
+                slots
+              </li>
+              <li>
+                Ensure class schedules don't conflict with teacher
+                availabilities
+              </li>
+              <li>
+                Verify that subject assignments are realistic for the given time
+                frame
+              </li>
+              <li>
+                Consider reducing the number of periods or adjusting teacher
+                workload
+              </li>
+              <li>
+                Make sure all teachers have feasible subject-class combinations
+              </li>
             </ul>
           </div>
-          
+
           <div className="error-actions">
             <button
               className="action-button retry-button"
@@ -442,10 +481,15 @@ function AddTeacher() {
                       classTimetable: timetableData.class_timetable,
                       teacherTimetable: timetableData.teacher_timetable,
                       id: location.state?.timetableId,
-                      teacherData: location.state?.teacherData || timetableData.teacherData ,
+                      teacherData:
+                        location.state?.teacherData ||
+                        timetableData.teacherData,
                       classes: location.state?.classes || timetableData.classes,
-                      subjects: location.state?.subjects || timetableData.subjects,
-                      workingDays: location.state?.workingDays || timetableData.workingDays,
+                      subjects:
+                        location.state?.subjects || timetableData.subjects,
+                      workingDays:
+                        location.state?.workingDays ||
+                        timetableData.workingDays,
                       periods: location.state?.periods || timetableData.periods,
                       title: location.state?.title || timetableData.title,
                     },
@@ -503,7 +547,9 @@ function AddTeacher() {
         {/* Enhanced Error Display */}
         {error && (
           <div className="error-section">
-            {errorDetails ? renderErrorDetails() : (
+            {errorDetails ? (
+              renderErrorDetails()
+            ) : (
               <div className="error-alert">
                 <AlertTriangle className="icon-ge" />
                 {error}
@@ -605,7 +651,14 @@ function AddTeacher() {
                     <option>Select Class</option>
                     {classes.map((clas, ind) =>
                       clas !== "" ? (
-                        <option key={ind} value={clas}>
+                        <option
+                          key={ind}
+                          value={clas}
+                          disabled={
+                            assignedClasses.includes(clas) &&
+                            clas !== teacher.assigned_class
+                          }
+                        >
                           {clas}
                         </option>
                       ) : null
@@ -667,9 +720,13 @@ function AddTeacher() {
                                 )
                               }
                             >
-                              <option>{teacher.mainSubject ? teacher.mainSubject : "Select Subject"}</option>
+                              <option>
+                                {teacher.mainSubject
+                                  ? teacher.mainSubject
+                                  : "Select Subject"}
+                              </option>
                               {teacher.subjects.map((sub, subInd) =>
-                                sub !== "" && sub!==teacher.mainSubject ? (
+                                sub !== "" && sub !== teacher.mainSubject ? (
                                   <option key={subInd} value={sub}>
                                     {sub}
                                   </option>
