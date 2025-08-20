@@ -4,7 +4,7 @@ import InputField from "./components/InputField";
 import { useNavigate } from "react-router";
 import { useSignUp, useUser } from "@clerk/clerk-react";
 import { useSignIn } from "@clerk/clerk-react";
-import { Loader } from "lucide-react";
+import { Loader,Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import "../../../styles/theme.css"; // Import the theme CSS
 
@@ -16,6 +16,8 @@ function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,36 +26,49 @@ function SignUpPage() {
 
 
   const handleSignUpWithEmail = async () => {
-    try {
-      if (password === confirmPassword) {
-        setIsLoading(true);
-        const result = await signUp.create({
-          emailAddress: email,
-          password: password,
-        });
-
-        if (result.status === "complete") {
-         await setActive({ session: result.createdSessionId });
-        }
-
-        
-
-        navigate("/dashboard",{state:{
-          name : name
-        }});
-      }
-      else{
-      
-        toast.error("Password verification failed")
-      }
-    } catch (error) {
-      console.log("Error in sign up", error);
-     
-      toast.error(error.message)
-    } finally {
-      setIsLoading(false);
+  try {
+    if(!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()){
+      toast.error("Enter all details")
+      return;
     }
-  };
+    if (password !== confirmPassword) {
+      toast.error("Password verification failed");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const result = await signUp.create({
+      emailAddress: email,
+      password: password,
+    });
+
+    // Step 1: Send verification email
+    await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+    // Now prompt the user to enter the verification code (custom input box)
+    const userCode = prompt("Enter the verification code sent to your email");
+
+    // Step 2: Verify the code
+    const verificationResult = await signUp.attemptEmailAddressVerification({
+      code: userCode,
+    });
+
+    // Step 3: If verified, complete signup
+    if (verificationResult.status === "complete") {
+      await setActive({ session: verificationResult.createdSessionId });
+
+      navigate("/dashboard", {
+        state: { name: name },
+      });
+    }
+  } catch (error) {
+    console.log("Error in sign up", error);
+    toast.error(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   
 
@@ -115,18 +130,37 @@ function SignUpPage() {
                 placeholder="Enter Email"
                 handleFunction={(e) => setEmail(e.target.value)}
               />
-              <InputField
-                value={password}
-                type="password"
-                placeholder="Enter Password"
-                handleFunction={(e) => setPassword(e.target.value)}
-              />
-              <InputField
-                value={confirmPassword}
-                type="password"
-                placeholder="Confirm Password"
-                handleFunction={(e) => setConfirmPassword(e.target.value)}
-              />
+              <div className="w-100 position-relative">
+                    <InputField
+                      value={password}
+                      type={isPasswordVisible ? "text" : "password"}
+                      placeholder="Enter Password"
+                      handleFunction={(e) => setPassword(e.target.value)}
+                    />
+                    <div
+                      className="position-absolute"
+                      style={{ top: "50%", right: "10px", transform: "translateY(-50%)", cursor: "pointer" }}
+                      onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                    >
+                      {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </div>
+                  </div>
+                <div className="w-100 position-relative">
+                    <InputField
+                      value={confirmPassword}
+                      type={isConfirmPasswordVisible ? "text" : "password"}
+                      placeholder="Confirm Password"
+                      handleFunction={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <div
+                      className="position-absolute"
+                      style={{ top: "50%", right: "10px", transform: "translateY(-50%)", cursor: "pointer" }}
+                      onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                    >
+                      {isConfirmPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </div>
+                  </div>
+              
               <button
                 className="auth-button d-flex justify-content-center align-items-center p-2 rounded w-100"
                 style={{ height: "38px", padding: "0 16px" }}
